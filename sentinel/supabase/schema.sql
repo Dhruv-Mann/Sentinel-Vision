@@ -111,3 +111,37 @@ CREATE POLICY "Users can delete analytics for own resumes"
         AND resumes.user_id = auth.uid()
     )
   );
+
+-- ============================================================
+-- 4. STORAGE – "resumes" bucket
+-- ============================================================
+-- Create the bucket (run via Dashboard or Supabase CLI; SQL shown
+-- for completeness – the storage schema may not be available in
+-- all SQL editors, but this is the canonical command).
+INSERT INTO storage.buckets (id, name, public)
+  VALUES ('resumes', 'resumes', true)
+  ON CONFLICT (id) DO NOTHING;
+
+-- Authenticated users can upload to their own folder
+CREATE POLICY "Users can upload own resumes"
+  ON storage.objects
+  FOR INSERT
+  WITH CHECK (
+    bucket_id = 'resumes'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Anyone can read (resumes are shared publicly via link)
+CREATE POLICY "Public read access for resumes"
+  ON storage.objects
+  FOR SELECT
+  USING (bucket_id = 'resumes');
+
+-- Owners can delete their own uploads
+CREATE POLICY "Users can delete own resume files"
+  ON storage.objects
+  FOR DELETE
+  USING (
+    bucket_id = 'resumes'
+    AND auth.uid()::text = (storage.foldername(name))[1]
+  );
