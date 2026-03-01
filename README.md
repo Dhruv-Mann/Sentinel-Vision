@@ -1,5 +1,7 @@
 # 🎯 Sentinel – Resume Intelligence Platform
 
+[![Live Demo](https://img.shields.io/badge/demo-online-green?logo=vercel&style=for-the-badge)](https://sentinel-vision-five.vercel.app)
+
 > **Turn your resume into a data source.** Know exactly who's viewing your resume, where they're from, what device they're using, and how engaged they are. Real-time analytics for job seekers who want an unfair advantage.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
