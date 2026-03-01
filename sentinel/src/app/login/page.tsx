@@ -54,7 +54,7 @@ export default function LoginPage() {
     }
 
     // Move to OTP verification step
-    setMessage("A 6-digit verification code has been sent to your email.");
+    setMessage("A verification code has been sent to your email.");
     setMode("verify");
     setLoading(false);
   }
@@ -108,7 +108,7 @@ export default function LoginPage() {
     },
     verify: {
       heading: "Verify your email",
-      sub: `Enter the 6-digit code sent to ${email}`,
+      sub: `Enter the code sent to ${email}`,
     },
   };
 
@@ -235,7 +235,7 @@ export default function LoginPage() {
               value={otp}
               onChange={setOtp}
               icon={<KeyRound className="h-4 w-4" />}
-              maxLength={6}
+              maxLength={8}
               autoFocus
             />
 
@@ -243,7 +243,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading || otp.length < 6}
+              disabled={loading || otp.length < 6}  // Supabase OTP can be 6-8 chars
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
             >
               <KeyRound className="h-4 w-4" />
