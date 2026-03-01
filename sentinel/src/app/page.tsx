@@ -4,6 +4,22 @@ import { Shield, ArrowRight, Eye, BarChart3, Globe } from "lucide-react";
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center">
+      {/* Top nav */}
+      <nav className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-green-400" />
+          <span className="text-sm font-bold tracking-tight text-zinc-100">
+            Sentinel
+          </span>
+        </div>
+        <Link
+          href="/login"
+          className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-green-500/30 hover:text-green-400"
+        >
+          Sign In
+        </Link>
+      </nav>
+
       {/* Gradient glow behind hero */}
       <div
         aria-hidden
