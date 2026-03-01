@@ -152,7 +152,7 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 
 ```bash
 git clone https://github.com/your-username/sentinel-vision.git
-cd sentinel/sentinel
+cd sentinel-vision/sentinel
 npm install
 ```
 
@@ -209,45 +209,44 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📂 Project Architecture
 
 ```
-sentinel/
-├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── page.tsx                  # Landing page
-│   │   ├── auth/
-│   │   │   └── callback/route.ts     # OAuth callback handler
-│   │   ├── login/page.tsx            # Login page
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx              # Main dashboard with real-time stats
-│   │   │   └── layout.tsx            # Authenticated layout wrapper
-│   │   ├── view/[id]/page.tsx        # Public resume viewer (tracking enabled)
-│   │   └── api/
-│   │       └── track/route.ts        # Tracking beacon endpoint
-│   │
-│   ├── components/
-│   │   ├── navbar.tsx                # Navigation header
-│   │   ├── pdf-viewer.tsx            # PDF resume renderer
-│   │   └── dashboard/
-│   │       ├── resume-card.tsx       # Resume card component
-│   │       └── upload-button.tsx     # Resume upload handler
-│   │
-│   ├── hooks/
-│   │   └── use-tracking.ts           # Tracking logic hook
-│   │
-│   ├── lib/
-│   │   ├── supabase.ts               # Client-side Supabase client
-│   │   ├── supabase-server.ts        # Server-side Supabase client
-│   │   └── supabase-admin.ts         # Admin service-role client
-│   │
-│   └── types/
-│       ├── database.types.ts         # Auto-generated DB types
-│       └── index.ts                  # Type aliases
+src/
+├── app/                              # Next.js App Router
+│   ├── page.tsx                      # Landing page
+│   ├── auth/
+│   │   └── callback/route.ts         # OAuth callback handler
+│   ├── login/page.tsx                # Login page
+│   ├── dashboard/
+│   │   ├── page.tsx                  # Main dashboard with real-time stats
+│   │   └── layout.tsx                # Authenticated layout wrapper
+│   ├── view/[id]/page.tsx            # Public resume viewer (tracking enabled)
+│   └── api/
+│       └── track/route.ts            # Tracking beacon endpoint
 │
-├── supabase/
-│   └── schema.sql                    # Full DB schema + RLS policies
+├── components/
+│   ├── navbar.tsx                    # Navigation header
+│   ├── pdf-viewer.tsx                # PDF resume renderer
+│   └── dashboard/
+│       ├── resume-card.tsx           # Resume card component
+│       └── upload-button.tsx         # Resume upload handler
 │
-├── public/                           # Static assets
+├── hooks/
+│   └── use-tracking.ts               # Tracking logic hook
 │
-└── Configuration files (package.json, tsconfig.json, etc.)
+├── lib/
+│   ├── supabase.ts                   # Client-side Supabase client
+│   ├── supabase-server.ts            # Server-side Supabase client
+│   └── supabase-admin.ts             # Admin service-role client
+│
+└── types/
+    ├── database.types.ts             # Auto-generated DB types
+    └── index.ts                      # Type aliases
+
+supabase/
+└── schema.sql                        # Full DB schema + RLS policies
+
+public/                               # Static assets
+
+Configuration files (package.json, tsconfig.json, etc.)
 ```
 
 ---

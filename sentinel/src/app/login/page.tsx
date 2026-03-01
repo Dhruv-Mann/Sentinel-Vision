@@ -29,7 +29,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    // Full navigation forces a server round-trip so the auth cookie
+    // is picked up by middleware — prevents the "freeze" bug.
+    window.location.href = "/dashboard";
   }
 
   async function handleSignUp() {

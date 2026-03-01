@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Shield, LogOut, LayoutDashboard } from "lucide-react";
+import { Shield, LogOut, LayoutDashboard, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -12,6 +13,28 @@ import { supabase } from "@/lib/supabase";
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? null);
+    });
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const initial = email ? email[0].toUpperCase() : "?";
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -44,15 +67,40 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Right – Sign out */}
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-400 transition hover:border-red-500/30 hover:text-red-400"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Sign Out
-        </button>
+        {/* Right – User menu */}
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-sm font-semibold text-green-400 ring-1 ring-green-500/30 transition hover:bg-green-500/25"
+            title={email ?? "Account"}
+          >
+            {initial}
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl shadow-black/40">
+              {/* Email */}
+              <div className="border-b border-zinc-800 px-4 py-3">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+                  Signed in as
+                </p>
+                <p className="mt-0.5 truncate text-sm font-medium text-zinc-200">
+                  {email ?? "—"}
+                </p>
+              </div>
+              {/* Sign out */}
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-xs font-medium text-zinc-400 transition hover:bg-zinc-800 hover:text-red-400"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );
