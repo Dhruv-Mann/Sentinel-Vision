@@ -145,16 +145,16 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 ### Prerequisites
 - Node.js 18+ (LTS recommended)
 - npm or yarn package manager
-- Supabase account (free tier supported)
-- Vercel account (optional, for deployment)
+- Supabase account (free tier supported at [supabase.com](https://supabase.com))
+- Vercel account (optional, for deployment at [vercel.com](https://vercel.com))
 
 ### Installation
 
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/sentinel-vision.git
-cd sentinel-vision/sentinel
+git clone https://github.com/Dhruv-Mann/Sentinel-Vision.git
+cd Sentinel-Vision/sentinel
 npm install
 ```
 
@@ -187,12 +187,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 In your Supabase dashboard, go to **SQL Editor** and run the full schema:
 
 ```sql
--- Copy contents of supabase/schema.sql and paste here
+-- Copy contents of sentinel/supabase/schema.sql and paste here into SQL Editor
 ```
 
 Or use the Supabase CLI:
 
 ```bash
+cd sentinel
 npm install -g supabase
 supabase link --project-ref your_project_ref
 supabase db push
@@ -202,6 +203,8 @@ supabase db push
 
 ```bash
 npm run dev
+# or if you're in the root directory:
+cd sentinel && npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -458,7 +461,7 @@ Have an idea? Found a bug? Want to chat about the project?
 
 - **Open an issue** for bug reports and feature requests
 - **Discussions** for questions and general feedback
-- **Email** [dhruvmann139@gmail.com]
+- **Email** dhruvmann139@gmail.com
 
 ---
 
@@ -480,5 +483,7 @@ Building Sentinel teaches you:
 **Made with ❤️ by Dhruv Mann, for developers and job seekers.**
 
 Give a ⭐ if you find this useful!
+
+[⭐ Star on GitHub](https://github.com/Dhruv-Mann/Sentinel-Vision) | [🚀 Try the Live Demo](https://sentinel-vision-five.vercel.app)
 
 
