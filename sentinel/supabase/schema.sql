@@ -92,10 +92,9 @@ CREATE POLICY "Users can view analytics for own resumes"
     )
   );
 
--- INSERT is allowed for everyone (anonymous viewers trigger events).
--- The tracking endpoint will use the Supabase service-role key,
--- so this policy is intentionally permissive for inserts.
-CREATE POLICY "Anyone can insert analytics events"
+-- INSERT is handled server-side via the service-role key (/api/track route).
+-- This policy exists as a fallback; the admin client bypasses RLS anyway.
+CREATE POLICY "Allow anonymous inserts"
   ON public.analytics_events
   FOR INSERT
   WITH CHECK (true);

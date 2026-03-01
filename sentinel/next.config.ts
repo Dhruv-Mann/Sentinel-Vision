@@ -10,11 +10,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Empty turbopack config to satisfy Next.js 16 (Turbopack is default)
+  // Turbopack is default in Next.js 16
   turbopack: {},
-  // Required for react-pdf canvas shim in production
+  // canvas alias for react-pdf (webpack / production build only)
   webpack: (config) => {
-    config.resolve.alias.canvas = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (config.resolve as any).alias.canvas = false;
     return config;
   },
 };
