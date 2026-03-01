@@ -2,6 +2,53 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { resend, SENDER_EMAIL } from "@/lib/resend";
 
+/* ── rate limiter ─────────────────────────────────────────── */
+
+/**
+ * In-memory sliding-window rate limiter.
+ *
+ * Limits: max 6 NEW view events per IP per 60-second window.
+ * Heartbeat UPDATEs (event_id present) are NOT rate-limited — they
+ * only update an existing row and fire every 5 s by design.
+ *
+ * Note: On Vercel serverless, each cold-start gets its own Map, so
+ * distributed attackers could bypass this. For a portfolio project
+ * this is sufficient. For production scale, use Vercel KV / Upstash.
+ */
+const RATE_WINDOW_MS = 60_000; // 60 seconds
+const RATE_MAX_HITS = 6;       // max new-view events per window per IP
+
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+/** Periodically purge expired entries to avoid memory leaks */
+function pruneRateMap() {
+  const now = Date.now();
+  for (const [key, val] of rateLimitMap) {
+    if (now > val.resetAt) rateLimitMap.delete(key);
+  }
+}
+// Prune every 2 minutes
+if (typeof setInterval !== "undefined") {
+  setInterval(pruneRateMap, 120_000);
+}
+
+/**
+ * Returns true if the request should be BLOCKED.
+ */
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    // First request or window expired → start fresh
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+
+  entry.count += 1;
+  return entry.count > RATE_MAX_HITS;
+}
+
 /* ── helpers ──────────────────────────────────────────────── */
 
 /** Parse browser name from User-Agent */
@@ -100,6 +147,28 @@ export async function POST(request: Request) {
     // Grab the viewer's IP from headers
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded?.split(",")[0]?.trim() ?? "127.0.0.1";
+
+    // ── Rate limit check (new events only) ─────────────────
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
+      );
+    }
+
+    // ── Validate resume exists before inserting ────────────
+    const { data: resumeExists } = await supabaseAdmin
+      .from("resumes")
+      .select("id")
+      .eq("id", resume_id)
+      .single();
+
+    if (!resumeExists) {
+      return NextResponse.json(
+        { error: "Resume not found" },
+        { status: 404 },
+      );
+    }
 
     // Geo lookup (non-blocking for speed — we await but with timeout)
     const geo = await fetchGeo(ip);
