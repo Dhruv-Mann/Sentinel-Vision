@@ -14,6 +14,30 @@ function getDeviceType(): string {
   return "desktop";
 }
 
+/** Parse browser name from User-Agent (client-side). */
+function getBrowser(): string {
+  if (typeof navigator === "undefined") return "unknown";
+  const ua = navigator.userAgent;
+  if (/edg\//i.test(ua)) return "Edge";
+  if (/opr\//i.test(ua) || /opera/i.test(ua)) return "Opera";
+  if (/chrome\//i.test(ua) && !/chromium/i.test(ua)) return "Chrome";
+  if (/safari\//i.test(ua) && !/chrome/i.test(ua)) return "Safari";
+  if (/firefox\//i.test(ua)) return "Firefox";
+  return "Other";
+}
+
+/** Parse OS from User-Agent (client-side). */
+function getOS(): string {
+  if (typeof navigator === "undefined") return "unknown";
+  const ua = navigator.userAgent;
+  if (/windows/i.test(ua)) return "Windows";
+  if (/macintosh|mac os/i.test(ua)) return "macOS";
+  if (/android/i.test(ua)) return "Android";
+  if (/iphone|ipad|ipod/i.test(ua)) return "iOS";
+  if (/linux/i.test(ua)) return "Linux";
+  return "Other";
+}
+
 /**
  * Silent analytics tracking hook.
  *
@@ -48,6 +72,8 @@ export function useTracking(resumeId: string) {
             resume_id: resumeId,
             event_type: "view",
             device_type: getDeviceType(),
+            browser: getBrowser(),
+            os: getOS(),
             duration_seconds: 0,
           }),
         });

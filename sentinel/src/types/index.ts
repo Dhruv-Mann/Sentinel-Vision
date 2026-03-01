@@ -9,3 +9,10 @@ export type AnalyticsEvent = Database["public"]["Tables"]["analytics_events"]["R
 export type AnalyticsEventInsert = Database["public"]["Tables"]["analytics_events"]["Insert"];
 
 export type EventType = "view" | "scroll" | "exit";
+
+/** Shape returned by the /api/track route's geo lookup */
+export interface GeoData {
+  city: string | null;
+  country: string | null;
+  ip: string | null;
+}

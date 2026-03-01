@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { BarChart3 } from "lucide-react";
 
 interface ResumeCardProps {
   id: string;
@@ -21,6 +23,7 @@ export default function ResumeCard({
 }: ResumeCardProps) {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const router = useRouter();
 
   // ── Copy shareable link ──────────────────────────────────
   async function handleCopy() {
@@ -64,7 +67,10 @@ export default function ResumeCard({
     : "Never";
 
   return (
-    <div className="group relative flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700 hover:shadow-lg hover:shadow-green-500/5">
+    <div
+      className="group relative flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700 hover:shadow-lg hover:shadow-green-500/5 cursor-pointer"
+      onClick={() => router.push(`/dashboard/resume/${id}`)}
+    >
       {/* Title */}
       <h3 className="mb-4 truncate text-base font-semibold text-zinc-100">
         {title}
@@ -94,7 +100,22 @@ export default function ResumeCard({
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={handleCopy}
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/dashboard/resume/${id}`);
+          }}
+          className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-green-400 transition hover:border-green-500/40 hover:bg-green-500/10"
+        >
+          <BarChart3 className="h-3 w-3" />
+          Analytics
+        </button>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCopy();
+          }}
           className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
         >
           {copied ? "Copied!" : "Copy Link"}
@@ -102,7 +123,10 @@ export default function ResumeCard({
 
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete();
+          }}
           disabled={deleting}
           className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 disabled:opacity-50"
         >

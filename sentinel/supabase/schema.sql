@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS public.analytics_events (
   city              TEXT,
   country           TEXT,
   device_type       TEXT,                         -- e.g. 'mobile', 'desktop', 'tablet'
+  browser           TEXT,                         -- e.g. 'Chrome', 'Safari', 'Firefox'
+  os                TEXT,                         -- e.g. 'Windows', 'macOS', 'Android'
   duration_seconds  INTEGER DEFAULT 0 CHECK (duration_seconds >= 0),
   timestamp         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
