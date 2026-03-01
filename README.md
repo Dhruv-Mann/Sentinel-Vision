@@ -457,7 +457,7 @@ Have an idea? Found a bug? Want to chat about the project?
 
 - **Open an issue** for bug reports and feature requests
 - **Discussions** for questions and general feedback
-- **Email** [your-email@example.com]
+- **Email** [dhruvmann139@gmail.com]
 
 ---
 
@@ -476,8 +476,8 @@ Building Sentinel teaches you:
 
 ---
 
-**Made with ❤️ by developers, for developers and job seekers.**
+**Made with ❤️ by Dhruv Mann, for developers and job seekers.**
 
 Give a ⭐ if you find this useful!
 
-[Star on GitHub](https://github.com/your-username/sentinel-vision) | [Try the Demo](#) | [Join our Discord](#)
+
