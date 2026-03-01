@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS public.resumes (
   user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   file_url    TEXT NOT NULL,
   title       TEXT NOT NULL DEFAULT 'Untitled Resume',
+  slug        TEXT UNIQUE,                            -- custom shareable slug (e.g. /view/dhruv-resume)
+  notify_on_view BOOLEAN NOT NULL DEFAULT true,       -- email notification when viewed
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -146,3 +148,18 @@ CREATE POLICY "Users can delete own resume files"
     bucket_id = 'resumes'
     AND auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- ============================================================
+-- 5. MIGRATION HELPERS
+-- ============================================================
+-- Run these if upgrading from an earlier schema version:
+--
+-- Add slug column to resumes:
+--   ALTER TABLE public.resumes ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
+--
+-- Add notify_on_view column to resumes:
+--   ALTER TABLE public.resumes ADD COLUMN IF NOT EXISTS notify_on_view BOOLEAN NOT NULL DEFAULT true;
+--
+-- Add browser & os columns to analytics_events (if not already present):
+--   ALTER TABLE public.analytics_events ADD COLUMN IF NOT EXISTS browser TEXT;
+--   ALTER TABLE public.analytics_events ADD COLUMN IF NOT EXISTS os TEXT;

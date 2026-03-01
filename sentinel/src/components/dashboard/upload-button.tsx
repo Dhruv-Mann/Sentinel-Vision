@@ -56,10 +56,18 @@ export default function UploadButton({ onUploadComplete }: UploadButtonProps) {
       // 5. Insert a row into the resumes table
       const title = file.name.replace(/\.[^/.]+$/, "") || "Untitled Resume";
 
+      // Auto-generate slug from title
+      const baseSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      const slug = `${baseSlug}-${Date.now().toString(36)}`;
+
       const { error: insertError } = await supabase.from("resumes").insert({
         user_id: user.id,
         file_url: publicUrl,
         title,
+        slug,
       });
 
       if (insertError) {

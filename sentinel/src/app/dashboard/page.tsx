@@ -9,6 +9,7 @@ import { Eye, Clock, FileText, TrendingUp } from "lucide-react";
 interface ResumeWithStats {
   id: string;
   title: string;
+  slug: string | null;
   totalViews: number;
   avgDuration: number;
   lastViewed: string | null;
@@ -31,7 +32,7 @@ export default function DashboardPage() {
 
     const { data: rows, error } = await supabase
       .from("resumes")
-      .select("id, title, created_at")
+      .select("id, title, slug, created_at")
       .order("created_at", { ascending: false });
 
     if (error || !rows) {
@@ -72,6 +73,7 @@ export default function DashboardPage() {
         return {
           id: r.id,
           title: r.title,
+          slug: r.slug ?? null,
           totalViews: count ?? 0,
           avgDuration: avg,
           lastViewed: latest?.timestamp ?? null,
@@ -105,7 +107,7 @@ export default function DashboardPage() {
   // ── Loading skeleton ─────────────────────────────────────
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-950 px-6 py-12">
+      <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
         <div className="mx-auto max-w-6xl">
           <div className="mb-8 flex items-center justify-between">
             <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
@@ -134,7 +136,7 @@ export default function DashboardPage() {
 
   // ── Main render ──────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-12">
+    <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -209,6 +211,7 @@ export default function DashboardPage() {
                 key={r.id}
                 id={r.id}
                 title={r.title}
+                slug={r.slug}
                 totalViews={r.totalViews}
                 lastViewed={r.lastViewed}
                 onDelete={fetchResumes}

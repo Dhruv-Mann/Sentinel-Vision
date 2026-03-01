@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BarChart3, Pencil, Check, X } from "lucide-react";
+import { BarChart3, Pencil, Check, X, Link2, Copy } from "lucide-react";
 
 interface ResumeCardProps {
   id: string;
   title: string;
+  slug: string | null;
   totalViews: number;
   lastViewed: string | null;
   onDelete: () => void;
@@ -17,6 +18,7 @@ interface ResumeCardProps {
 export default function ResumeCard({
   id,
   title,
+  slug,
   totalViews,
   lastViewed,
   onDelete,
@@ -26,7 +28,10 @@ export default function ResumeCard({
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [newSlug, setNewSlug] = useState(slug ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const slugInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,6 +40,13 @@ export default function ResumeCard({
       inputRef.current.select();
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (editingSlug && slugInputRef.current) {
+      slugInputRef.current.focus();
+      slugInputRef.current.select();
+    }
+  }, [editingSlug]);
 
   // ── Rename resume ────────────────────────────────────────
   async function handleRename() {
@@ -59,15 +71,54 @@ export default function ResumeCard({
     onRename();
   }
 
+  // ── Save slug ────────────────────────────────────────────
+  async function handleSlugSave() {
+    const sanitized = newSlug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    if (!sanitized) {
+      // Clear slug
+      await supabase.from("resumes").update({ slug: null }).eq("id", id);
+      setNewSlug("");
+      setEditingSlug(false);
+      onRename();
+      return;
+    }
+
+    const { error } = await supabase
+      .from("resumes")
+      .update({ slug: sanitized })
+      .eq("id", id);
+
+    if (error) {
+      if (error.code === "23505") {
+        alert("This slug is already taken. Try a different one.");
+      } else {
+        console.error("Slug error:", error);
+      }
+      setNewSlug(slug ?? "");
+    } else {
+      setNewSlug(sanitized);
+    }
+
+    setEditingSlug(false);
+    onRename();
+  }
+
   // ── Copy shareable link ──────────────────────────────────
+  const shareableId = slug || id;
+
   async function handleCopy() {
-    const link = `${window.location.origin}/view/${id}`;
+    const link = `${window.location.origin}/view/${shareableId}`;
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for insecure contexts
       prompt("Copy this link:", link);
     }
   }
@@ -126,7 +177,7 @@ export default function ResumeCard({
           </button>
         </div>
       ) : (
-        <div className="mb-4 flex items-center gap-2 group/title">
+        <div className="mb-2 flex items-center gap-2 group/title">
           <h3 className="truncate text-base font-semibold text-zinc-100">{title}</h3>
           <button
             onClick={(e) => { e.stopPropagation(); setEditing(true); }}
@@ -136,6 +187,44 @@ export default function ResumeCard({
           </button>
         </div>
       )}
+
+      {/* Slug */}
+      <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+        {editingSlug ? (
+          <div className="flex items-center gap-1">
+            <span className="text-[11px] text-zinc-600">/view/</span>
+            <input
+              ref={slugInputRef}
+              value={newSlug}
+              onChange={(e) => setNewSlug(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSlugSave();
+                if (e.key === "Escape") { setEditingSlug(false); setNewSlug(slug ?? ""); }
+              }}
+              placeholder="my-resume"
+              className="flex-1 rounded border border-zinc-600 bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-300 outline-none focus:border-green-500"
+            />
+            <button onClick={handleSlugSave} className="rounded p-0.5 text-green-400 hover:bg-green-500/10">
+              <Check className="h-3 w-3" />
+            </button>
+            <button onClick={() => { setEditingSlug(false); setNewSlug(slug ?? ""); }} className="rounded p-0.5 text-zinc-400 hover:bg-zinc-700">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditingSlug(true)}
+            className="flex items-center gap-1.5 text-[11px] text-zinc-500 transition hover:text-green-400"
+          >
+            <Link2 className="h-3 w-3" />
+            {slug ? (
+              <span className="truncate">/view/{slug}</span>
+            ) : (
+              <span className="italic">Set custom slug</span>
+            )}
+          </button>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="mb-5 grid grid-cols-2 gap-3">
@@ -177,8 +266,9 @@ export default function ResumeCard({
             e.stopPropagation();
             handleCopy();
           }}
-          className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
+          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
         >
+          <Copy className="h-3 w-3" />
           {copied ? "Copied!" : "Copy Link"}
         </button>
 
@@ -191,7 +281,7 @@ export default function ResumeCard({
           disabled={deleting}
           className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-500/40 hover:bg-red-500/10 disabled:opacity-50"
         >
-          {deleting ? "…" : "Delete"}
+          {deleting ? "\u2026" : "Delete"}
         </button>
       </div>
     </div>

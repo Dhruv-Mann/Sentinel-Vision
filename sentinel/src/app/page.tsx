@@ -3,7 +3,7 @@ import { Shield, ArrowRight, Eye, BarChart3, Globe } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[var(--bg-page)] px-6 text-center">
       {/* Top nav */}
       <nav className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-2">

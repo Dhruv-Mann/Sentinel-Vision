@@ -13,6 +13,7 @@ import {
   Smartphone,
   Tablet,
   MapPin,
+  Download,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -76,6 +77,31 @@ function formatDate(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** Export analytics events as a CSV download */
+function exportCSV(events: ViewEvent[], title: string) {
+  const header = "Date,Location,Device,Browser,OS,Duration (s)\n";
+  const rows = events
+    .map((e) =>
+      [
+        new Date(e.timestamp).toISOString(),
+        e.city && e.country ? `${e.city} ${e.country}` : "Unknown",
+        e.device_type ?? "unknown",
+        e.browser ?? "—",
+        e.os ?? "—",
+        e.duration_seconds,
+      ].join(","),
+    )
+    .join("\n");
+
+  const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${title.replace(/\s+/g, "_")}_analytics.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 /* ── component ─────────────────────────────────────────────── */
@@ -188,7 +214,7 @@ export default function ResumeAnalyticsPage() {
   /* ── Loading ─────────────────────────────────────────────── */
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-950 px-6 py-12">
+      <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
         <div className="mx-auto max-w-6xl">
           <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
           <div className="mt-8 grid gap-4 sm:grid-cols-4">
@@ -207,7 +233,7 @@ export default function ResumeAnalyticsPage() {
 
   /* ── Main render ─────────────────────────────────────────── */
   return (
-    <main className="min-h-screen bg-zinc-950 px-6 py-12">
+    <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -221,9 +247,20 @@ export default function ResumeAnalyticsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
             {resume?.title}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Created {resume ? formatDate(resume.created_at) : ""}
-          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <p className="text-sm text-zinc-500">
+              Created {resume ? formatDate(resume.created_at) : ""}
+            </p>
+            {events.length > 0 && (
+              <button
+                onClick={() => exportCSV(events, resume?.title ?? "resume")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
+              >
+                <Download className="h-3 w-3" />
+                Export CSV
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stat cards */}

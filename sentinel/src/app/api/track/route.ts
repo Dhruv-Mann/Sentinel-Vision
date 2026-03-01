@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { resend, SENDER_EMAIL } from "@/lib/resend";
 
 /* ── helpers ──────────────────────────────────────────────── */
 
@@ -129,6 +130,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // ── Email notification (fire-and-forget) ───────────────
+    if (resend && event_type === "view") {
+      sendViewNotification(resume_id, geo.city, geo.country, finalBrowser, finalOS).catch(
+        (err) => console.error("Notification error:", err),
+      );
+    }
+
     return NextResponse.json({ id: data.id });
   } catch {
     return NextResponse.json(
@@ -136,4 +144,56 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+}
+
+/**
+ * Send a "Someone viewed your resume" email to the resume owner.
+ * Only sends if the resume has notify_on_view = true and
+ * the RESEND_API_KEY env var is configured.
+ */
+async function sendViewNotification(
+  resumeId: string,
+  city: string | null,
+  country: string | null,
+  browser: string,
+  os: string,
+) {
+  if (!resend) return;
+
+  // Get resume + owner info
+  const { data: resume } = await supabaseAdmin
+    .from("resumes")
+    .select("title, notify_on_view, user_id")
+    .eq("id", resumeId)
+    .single();
+
+  if (!resume || !resume.notify_on_view) return;
+
+  // Get owner email from auth
+  const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(resume.user_id);
+  if (!user?.email) return;
+
+  const location =
+    city && country && city !== "Localhost"
+      ? `${city}, ${country}`
+      : "Unknown location";
+
+  await resend.emails.send({
+    from: SENDER_EMAIL,
+    to: user.email,
+    subject: `New view on "${resume.title}" \u2013 Sentinel`,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #fafafa; border-radius: 12px;">
+        <h2 style="margin: 0 0 8px; font-size: 18px; color: #18181b;">Someone viewed your resume</h2>
+        <p style="margin: 0 0 20px; font-size: 14px; color: #71717a;">${resume.title}</p>
+        <table style="width: 100%; font-size: 14px; color: #3f3f46;">
+          <tr><td style="padding: 6px 0; color: #71717a;">Location</td><td style="padding: 6px 0; text-align: right; font-weight: 500;">${location}</td></tr>
+          <tr><td style="padding: 6px 0; color: #71717a;">Browser</td><td style="padding: 6px 0; text-align: right; font-weight: 500;">${browser}</td></tr>
+          <tr><td style="padding: 6px 0; color: #71717a;">OS</td><td style="padding: 6px 0; text-align: right; font-weight: 500;">${os}</td></tr>
+        </table>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e4e4e7;" />
+        <p style="margin: 0; font-size: 12px; color: #a1a1aa;">Sent by Sentinel \u2013 Resume Analytics</p>
+      </div>
+    `,
+  });
 }

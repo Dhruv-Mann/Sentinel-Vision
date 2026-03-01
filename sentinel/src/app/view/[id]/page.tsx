@@ -10,21 +10,40 @@ interface ViewPageProps {
  * Public resume viewer page (Server Component).
  *
  * Route: /view/:id
+ * - Accepts both a UUID or a custom slug.
  * - Uses the admin (service-role) client so unauthenticated recruiters
  *   can fetch resume metadata (RLS restricts anon reads).
  * - Returns 404 if the resume doesn't exist.
- * - Renders the PDF viewer + silent tracking client component.
  */
 export default async function ViewPage({ params }: ViewPageProps) {
   const { id } = await params;
 
-  const { data: resume, error } = await supabaseAdmin
-    .from("resumes")
-    .select("id, file_url, title")
-    .eq("id", id)
-    .single();
+  // Check if id is a UUID (simple regex check)
+  const isUUID =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-  if (error || !resume) {
+  let resume: { id: string; file_url: string; title: string } | null = null;
+
+  if (isUUID) {
+    const { data } = await supabaseAdmin
+      .from("resumes")
+      .select("id, file_url, title")
+      .eq("id", id)
+      .single();
+    resume = data;
+  }
+
+  // Fallback: try slug lookup
+  if (!resume) {
+    const { data } = await supabaseAdmin
+      .from("resumes")
+      .select("id, file_url, title")
+      .eq("slug", id)
+      .single();
+    resume = data;
+  }
+
+  if (!resume) {
     notFound();
   }
 
