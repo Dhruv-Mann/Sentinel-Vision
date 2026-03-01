@@ -153,8 +153,8 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/sentinel-vision.git
-cd sentinel-vision/sentinel
+git clone https://github.com/Dhruv-Mann/Sentinel-Vision.git
+cd Sentinel-Vision/sentinel
 npm install
 ```
 
