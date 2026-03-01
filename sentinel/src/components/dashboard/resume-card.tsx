@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Pencil, Check, X } from "lucide-react";
 
 interface ResumeCardProps {
   id: string;
   title: string;
   totalViews: number;
-  lastViewed: string | null; // ISO date or null
-  /** Called after a successful delete so the parent can refresh. */
+  lastViewed: string | null;
   onDelete: () => void;
+  onRename: () => void;
 }
 
 export default function ResumeCard({
@@ -20,10 +20,44 @@ export default function ResumeCard({
   totalViews,
   lastViewed,
   onDelete,
+  onRename,
 }: ResumeCardProps) {
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [newTitle, setNewTitle] = useState(title);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  // ── Rename resume ────────────────────────────────────────
+  async function handleRename() {
+    const trimmed = newTitle.trim();
+    if (!trimmed || trimmed === title) {
+      setEditing(false);
+      setNewTitle(title);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("resumes")
+      .update({ title: trimmed })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Rename error:", error);
+      setNewTitle(title);
+    }
+
+    setEditing(false);
+    onRename();
+  }
 
   // ── Copy shareable link ──────────────────────────────────
   async function handleCopy() {
@@ -72,9 +106,36 @@ export default function ResumeCard({
       onClick={() => router.push(`/dashboard/resume/${id}`)}
     >
       {/* Title */}
-      <h3 className="mb-4 truncate text-base font-semibold text-zinc-100">
-        {title}
-      </h3>
+      {editing ? (
+        <div className="mb-4 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <input
+            ref={inputRef}
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") { setEditing(false); setNewTitle(title); }
+            }}
+            className="flex-1 rounded-md border border-zinc-600 bg-zinc-800 px-2 py-1 text-sm text-zinc-100 outline-none focus:border-green-500"
+          />
+          <button onClick={handleRename} className="rounded p-1 text-green-400 hover:bg-green-500/10">
+            <Check className="h-4 w-4" />
+          </button>
+          <button onClick={() => { setEditing(false); setNewTitle(title); }} className="rounded p-1 text-zinc-400 hover:bg-zinc-700">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="mb-4 flex items-center gap-2 group/title">
+          <h3 className="truncate text-base font-semibold text-zinc-100">{title}</h3>
+          <button
+            onClick={(e) => { e.stopPropagation(); setEditing(true); }}
+            className="shrink-0 rounded p-1 text-zinc-500 opacity-0 transition hover:bg-zinc-800 hover:text-zinc-300 group-hover/title:opacity-100"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="mb-5 grid grid-cols-2 gap-3">

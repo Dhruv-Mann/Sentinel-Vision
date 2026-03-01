@@ -14,6 +14,17 @@ import {
   Tablet,
   MapPin,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -147,6 +158,33 @@ export default function ResumeAnalyticsPage() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  // ── Chart data: views per day ────────────────────────────
+  const viewsByDay: Record<string, number> = {};
+  events.forEach((e) => {
+    const day = new Date(e.timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    viewsByDay[day] = (viewsByDay[day] ?? 0) + 1;
+  });
+  const viewsOverTime = Object.entries(viewsByDay)
+    .reverse()
+    .map(([date, views]) => ({ date, views }));
+
+  // ── Chart data: device pie ───────────────────────────────
+  const devicePieData = Object.entries(deviceCounts).map(([name, value]) => ({
+    name,
+    value,
+  }));
+  const DEVICE_COLORS = ["#22c55e", "#3b82f6", "#f97316", "#a855f7", "#ef4444"];
+
+  // ── Chart data: browser pie ──────────────────────────────
+  const browserPieData = Object.entries(browserCounts).map(([name, value]) => ({
+    name,
+    value,
+  }));
+  const BROWSER_COLORS = ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#ef4444", "#eab308"];
+
   /* ── Loading ─────────────────────────────────────────────── */
   if (loading) {
     return (
@@ -211,6 +249,153 @@ export default function ResumeAnalyticsPage() {
             value={`${deviceCounts["desktop"] ?? 0} / ${deviceCounts["mobile"] ?? 0}`}
           />
         </div>
+
+        {/* ── Charts ─────────────────────────────────────────── */}
+        {totalViews > 0 && (
+          <div className="mb-8 grid gap-6 lg:grid-cols-3">
+            {/* Views over time – area chart */}
+            <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
+              <h3 className="mb-4 text-sm font-semibold text-zinc-200">
+                Views Over Time
+              </h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={viewsOverTime}>
+                  <defs>
+                    <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fill: "#71717a", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fill: "#71717a", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={30}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#18181b",
+                      border: "1px solid #27272a",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                    labelStyle={{ color: "#a1a1aa" }}
+                    itemStyle={{ color: "#22c55e" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    fill="url(#viewsGrad)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Device & Browser donut charts */}
+            <div className="flex flex-col gap-6">
+              {/* Device donut */}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
+                <h3 className="mb-2 text-sm font-semibold text-zinc-200">
+                  Devices
+                </h3>
+                <ResponsiveContainer width="100%" height={130}>
+                  <PieChart>
+                    <Pie
+                      data={devicePieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={35}
+                      outerRadius={55}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {devicePieData.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={DEVICE_COLORS[i % DEVICE_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "#18181b",
+                        border: "1px solid #27272a",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-1 flex flex-wrap justify-center gap-3 text-[11px]">
+                  {devicePieData.map((d, i) => (
+                    <span key={d.name} className="flex items-center gap-1 capitalize text-zinc-400">
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{ background: DEVICE_COLORS[i % DEVICE_COLORS.length] }}
+                      />
+                      {d.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Browser donut */}
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5">
+                <h3 className="mb-2 text-sm font-semibold text-zinc-200">
+                  Browsers
+                </h3>
+                <ResponsiveContainer width="100%" height={130}>
+                  <PieChart>
+                    <Pie
+                      data={browserPieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={35}
+                      outerRadius={55}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {browserPieData.map((_, i) => (
+                        <Cell
+                          key={i}
+                          fill={BROWSER_COLORS[i % BROWSER_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "#18181b",
+                        border: "1px solid #27272a",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-1 flex flex-wrap justify-center gap-3 text-[11px]">
+                  {browserPieData.map((d, i) => (
+                    <span key={d.name} className="flex items-center gap-1 text-zinc-400">
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{ background: BROWSER_COLORS[i % BROWSER_COLORS.length] }}
+                      />
+                      {d.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Breakdown section */}
         <div className="mb-8 grid gap-6 lg:grid-cols-3">
