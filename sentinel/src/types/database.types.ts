@@ -17,6 +17,8 @@ export interface Database {
           user_id: string;
           file_url: string;
           title: string;
+          slug: string | null;
+          expires_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -24,6 +26,8 @@ export interface Database {
           user_id: string;
           file_url: string;
           title?: string;
+          slug?: string;
+          expires_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -31,6 +35,8 @@ export interface Database {
           user_id?: string;
           file_url?: string;
           title?: string;
+          slug?: string;
+          expires_at?: string | null;
           created_at?: string;
         };
       };

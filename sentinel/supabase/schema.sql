@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS public.resumes (
   title       TEXT NOT NULL DEFAULT 'Untitled Resume',
   slug        TEXT UNIQUE,                            -- custom shareable slug (e.g. /view/dhruv-resume)
   notify_on_view BOOLEAN NOT NULL DEFAULT true,       -- email notification when viewed
+  expires_at  TIMESTAMPTZ,                            -- optional link expiry (NULL = permanent)
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
