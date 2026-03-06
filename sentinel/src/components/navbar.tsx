@@ -51,7 +51,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
         {/* Left – Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-green-400" />
+          <Shield className="h-5 w-5 text-zinc-100" />
           <span className="text-sm font-bold tracking-tight text-zinc-100">
             Sentinel
           </span>
@@ -63,7 +63,7 @@ export default function Navbar() {
             href="/dashboard"
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
               pathname === "/dashboard"
-                ? "bg-zinc-800 text-green-400"
+                ? "bg-zinc-800 text-zinc-100"
                 : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
             }`}
           >
@@ -95,7 +95,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-sm font-semibold text-green-400 ring-1 ring-green-500/30 transition hover:bg-green-500/25"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100/15 text-sm font-semibold text-zinc-100 ring-1 ring-zinc-100/30 transition hover:bg-zinc-100/25"
               title={email ?? "Account"}
             >
               {initial}
