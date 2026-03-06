@@ -11,6 +11,7 @@ import {
   KeyRound,
   ArrowLeft,
 } from "lucide-react";
+import { WebGLShader } from "@/components/ui/web-gl-shader";
 
 type Mode = "signin" | "signup" | "verify" | "forgot" | "reset";
 
@@ -214,11 +215,13 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[var(--bg-page)] px-4">
-      <div className="w-full max-w-md rounded-2xl border border-[var(--border-main)] bg-[var(--bg-card)] p-8 shadow-xl shadow-black/40">
+    <>
+      <WebGLShader />
+    <main className="relative z-10 flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 p-8 shadow-xl shadow-black/40 backdrop-blur-xl">
         {/* Logo / Title */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10 text-green-400">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white">
             <Shield className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">
@@ -256,7 +259,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
             >
               <LogIn className="h-4 w-4" />
               {loading ? "Signing in\u2026" : "Sign In"}
@@ -266,7 +269,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchTo("forgot")}
-                className="font-medium text-zinc-400 transition hover:text-green-400"
+                className="font-medium text-zinc-400 transition hover:text-white"
               >
                 Forgot password?
               </button>
@@ -275,7 +278,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => switchTo("signup")}
-                  className="font-medium text-green-400 transition hover:text-green-300"
+                  className="font-medium text-white transition hover:text-zinc-300"
                 >
                   Sign Up
                 </button>
@@ -314,7 +317,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !isPasswordValid(password)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
             >
               <UserPlus className="h-4 w-4" />
               {loading ? "Creating account\u2026" : "Sign Up"}
@@ -325,7 +328,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchTo("signin")}
-                className="font-medium text-green-400 transition hover:text-green-300"
+                className="font-medium text-white transition hover:text-zinc-300"
               >
                 Sign In
               </button>
@@ -355,7 +358,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || otp.length < 6}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
             >
               <KeyRound className="h-4 w-4" />
               {loading ? "Verifying\u2026" : "Verify & Continue"}
@@ -370,7 +373,7 @@ export default function LoginPage() {
                   setError(null);
                   setMessage(null);
                 }}
-                className="font-medium text-green-400 transition hover:text-green-300"
+                className="font-medium text-white transition hover:text-zinc-300"
               >
                 Resend
               </button>
@@ -396,7 +399,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
             >
               <Mail className="h-4 w-4" />
               {loading ? "Sending\u2026" : "Send Recovery Code"}
@@ -406,7 +409,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchTo("signin")}
-                className="inline-flex items-center gap-1 font-medium text-green-400 transition hover:text-green-300"
+                className="inline-flex items-center gap-1 font-medium text-white transition hover:text-zinc-300"
               >
                 <ArrowLeft className="h-3 w-3" />
                 Back to Sign In
@@ -468,7 +471,7 @@ export default function LoginPage() {
                 password !== confirmPassword ||
                 otp.length < 6
               }
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-500 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
             >
               <Lock className="h-4 w-4" />
               {loading ? "Resetting\u2026" : "Reset Password"}
@@ -478,7 +481,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => switchTo("signin")}
-                className="inline-flex items-center gap-1 font-medium text-green-400 transition hover:text-green-300"
+                className="inline-flex items-center gap-1 font-medium text-white transition hover:text-zinc-300"
               >
                 <ArrowLeft className="h-3 w-3" />
                 Back to Sign In
@@ -488,6 +491,7 @@ export default function LoginPage() {
         )}
       </div>
     </main>
+    </>
   );
 }
 
@@ -506,13 +510,13 @@ function PasswordChecklist({ password }: { password: string }) {
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                 passed
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-white/20 text-white"
                   : "bg-zinc-700 text-zinc-500"
               }`}
             >
               {passed ? "\u2713" : "\u00b7"}
             </span>
-            <span className={passed ? "text-green-400" : "text-zinc-500"}>
+            <span className={passed ? "text-white" : "text-zinc-500"}>
               {rule.label}
             </span>
           </div>
@@ -567,7 +571,7 @@ function InputField({
           minLength={minLength}
           maxLength={maxLength}
           autoFocus={autoFocus}
-          className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-2.5 pl-10 pr-4 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30"
+          className="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-white/30 focus:ring-1 focus:ring-white/20 backdrop-blur-sm"
         />
       </div>
     </div>
@@ -584,7 +588,7 @@ function ErrorMsg({ text }: { text: string }) {
 
 function SuccessMsg({ text }: { text: string }) {
   return (
-    <p className="rounded-lg bg-green-500/10 px-3 py-2 text-xs text-green-400">
+    <p className="rounded-lg bg-zinc-100/10 px-3 py-2 text-xs text-zinc-200">
       {text}
     </p>
   );
