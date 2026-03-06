@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
   Shield,
@@ -10,6 +11,7 @@ import {
   UserPlus,
   KeyRound,
   ArrowLeft,
+  ChevronLeft,
 } from "lucide-react";
 import { WebGLShader } from "@/components/ui/web-gl-shader";
 
@@ -217,6 +219,16 @@ export default function LoginPage() {
   return (
     <>
       <WebGLShader />
+
+      {/* Back to Home */}
+      <Link
+        href="/"
+        className="fixed top-6 left-6 z-50 inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Back
+      </Link>
+
     <main className="relative z-10 flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 p-8 shadow-xl shadow-black/40 backdrop-blur-xl">
         {/* Logo / Title */}
