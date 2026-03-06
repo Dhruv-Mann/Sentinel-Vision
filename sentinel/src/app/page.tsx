@@ -15,7 +15,7 @@ export default function Home() {
       {/* Floating glassmorphism navbar */}
       <nav className="fixed top-4 left-1/2 z-50 flex w-[90%] max-w-4xl -translate-x-1/2 items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-6 py-3 shadow-lg backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-green-400" />
+          <Shield className="h-5 w-5 text-zinc-100" />
           <span className="text-sm font-bold tracking-tight text-white">
             Sentinel
           </span>
@@ -41,7 +41,7 @@ export default function Home() {
       <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
         {/* Logo mark */}
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-black/30 shadow-2xl backdrop-blur-md">
-          <Shield className="h-8 w-8 text-green-400" />
+          <Shield className="h-8 w-8 text-zinc-100" />
         </div>
 
         {/* Heading */}
@@ -78,7 +78,7 @@ export default function Home() {
               key={label}
               className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-300 backdrop-blur-md transition hover:border-white/20 hover:text-white"
             >
-              <Icon className="h-4 w-4 text-green-400" />
+              <Icon className="h-4 w-4 text-zinc-100" />
               {label}
             </div>
           ))}
