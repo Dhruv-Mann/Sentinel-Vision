@@ -102,11 +102,11 @@ export default function UploadButton({ onUploadComplete }: UploadButtonProps) {
         type="button"
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
-        className="inline-flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-5 py-3 text-sm font-medium text-green-400 transition hover:bg-green-500/20 hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 rounded-lg border border-zinc-500/30 bg-zinc-100/10 px-5 py-3 text-sm font-medium text-zinc-200 transition hover:bg-zinc-100/20 hover:border-zinc-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {uploading ? (
           <>
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-400/30 border-t-green-400" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400/30 border-t-zinc-200" />
             Uploading&hellip;
           </>
         ) : (

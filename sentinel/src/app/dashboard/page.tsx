@@ -155,7 +155,7 @@ export default function DashboardPage() {
         {resumes.length > 0 && (
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <SummaryCard
-              icon={<Eye className="h-5 w-5 text-green-400" />}
+              icon={<Eye className="h-5 w-5 text-zinc-100" />}
               label="Total Views"
               value={String(totalViews)}
             />
@@ -237,7 +237,7 @@ function SummaryCard({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-900/80 px-5 py-4">
+    <div className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/80 px-5 py-4">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800/80">
         {icon}
       </div>

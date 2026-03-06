@@ -153,7 +153,7 @@ export default function ResumeCard({
 
   return (
     <div
-      className="group relative flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700 hover:shadow-lg hover:shadow-green-500/5 cursor-pointer"
+      className="group relative flex flex-col justify-between rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 transition hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-500/5 cursor-pointer"
       onClick={() => router.push(`/dashboard/resume/${id}`)}
     >
       {/* Title */}
@@ -167,9 +167,9 @@ export default function ResumeCard({
               if (e.key === "Enter") handleRename();
               if (e.key === "Escape") { setEditing(false); setNewTitle(title); }
             }}
-            className="flex-1 rounded-md border border-zinc-600 bg-zinc-800 px-2 py-1 text-sm text-zinc-100 outline-none focus:border-green-500"
+            className="flex-1 rounded-md border border-zinc-600 bg-zinc-800 px-2 py-1 text-sm text-zinc-100 outline-none focus:border-zinc-400"
           />
-          <button onClick={handleRename} className="rounded p-1 text-green-400 hover:bg-green-500/10">
+          <button onClick={handleRename} className="rounded p-1 text-zinc-200 hover:bg-zinc-100/10">
             <Check className="h-4 w-4" />
           </button>
           <button onClick={() => { setEditing(false); setNewTitle(title); }} className="rounded p-1 text-zinc-400 hover:bg-zinc-700">
@@ -202,9 +202,9 @@ export default function ResumeCard({
                 if (e.key === "Escape") { setEditingSlug(false); setNewSlug(slug ?? ""); }
               }}
               placeholder="my-resume"
-              className="flex-1 rounded border border-zinc-600 bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-300 outline-none focus:border-green-500"
+              className="flex-1 rounded border border-zinc-600 bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-300 outline-none focus:border-zinc-400"
             />
-            <button onClick={handleSlugSave} className="rounded p-0.5 text-green-400 hover:bg-green-500/10">
+            <button onClick={handleSlugSave} className="rounded p-0.5 text-zinc-200 hover:bg-zinc-100/10">
               <Check className="h-3 w-3" />
             </button>
             <button onClick={() => { setEditingSlug(false); setNewSlug(slug ?? ""); }} className="rounded p-0.5 text-zinc-400 hover:bg-zinc-700">
@@ -214,7 +214,7 @@ export default function ResumeCard({
         ) : (
           <button
             onClick={() => setEditingSlug(true)}
-            className="flex items-center gap-1.5 text-[11px] text-zinc-500 transition hover:text-green-400"
+            className="flex items-center gap-1.5 text-[11px] text-zinc-500 transition hover:text-zinc-300"
           >
             <Link2 className="h-3 w-3" />
             {slug ? (
@@ -232,7 +232,7 @@ export default function ResumeCard({
           <p className="text-[11px] uppercase tracking-wider text-zinc-500">
             Total Views
           </p>
-          <p className="mt-0.5 text-xl font-bold text-green-400">
+          <p className="mt-0.5 text-xl font-bold text-zinc-100">
             {totalViews}
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function ResumeCard({
             e.stopPropagation();
             router.push(`/dashboard/resume/${id}`);
           }}
-          className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-green-400 transition hover:border-green-500/40 hover:bg-green-500/10"
+          className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-700"
         >
           <BarChart3 className="h-3 w-3" />
           Analytics
@@ -266,7 +266,7 @@ export default function ResumeCard({
             e.stopPropagation();
             handleCopy();
           }}
-          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
+          className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
         >
           <Copy className="h-3 w-3" />
           {copied ? "Copied!" : "Copy Link"}

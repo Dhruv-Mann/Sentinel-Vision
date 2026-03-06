@@ -254,7 +254,7 @@ export default function ResumeAnalyticsPage() {
             {events.length > 0 && (
               <button
                 onClick={() => exportCSV(events, resume?.title ?? "resume")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-green-500/40 hover:text-green-400"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-zinc-500 hover:text-zinc-100"
               >
                 <Download className="h-3 w-3" />
                 Export CSV
@@ -266,7 +266,7 @@ export default function ResumeAnalyticsPage() {
         {/* Stat cards */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            icon={<Eye className="h-5 w-5 text-green-400" />}
+            icon={<Eye className="h-5 w-5 text-zinc-100" />}
             label="Total Views"
             value={String(totalViews)}
           />
@@ -515,7 +515,7 @@ export default function ResumeAnalyticsPage() {
                       <td className="px-5 py-3 text-zinc-400">
                         {ev.browser ?? "—"} / {ev.os ?? "—"}
                       </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-right font-mono text-green-400">
+                      <td className="whitespace-nowrap px-5 py-3 text-right font-mono text-zinc-100">
                         {formatDuration(ev.duration_seconds)}
                       </td>
                     </tr>
