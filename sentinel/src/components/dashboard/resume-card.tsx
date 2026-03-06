@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { BarChart3, Pencil, Check, X, Link2, Copy } from "lucide-react";
+import { BarChart3, Pencil, Check, X, Link2, Copy, Timer, ShieldOff } from "lucide-react";
 
 interface ResumeCardProps {
   id: string;
   title: string;
   slug: string | null;
+  expiresAt: string | null;
   totalViews: number;
   lastViewed: string | null;
   onDelete: () => void;
@@ -19,6 +20,7 @@ export default function ResumeCard({
   id,
   title,
   slug,
+  expiresAt,
   totalViews,
   lastViewed,
   onDelete,
@@ -30,6 +32,9 @@ export default function ResumeCard({
   const [newTitle, setNewTitle] = useState(title);
   const [editingSlug, setEditingSlug] = useState(false);
   const [newSlug, setNewSlug] = useState(slug ?? "");
+  const [expiryOpen, setExpiryOpen] = useState(false);
+  const [currentExpiry, setCurrentExpiry] = useState<string | null>(expiresAt);
+  const expiryRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const slugInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -47,6 +52,72 @@ export default function ResumeCard({
       slugInputRef.current.select();
     }
   }, [editingSlug]);
+
+  // Close expiry dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (expiryRef.current && !expiryRef.current.contains(e.target as Node)) {
+        setExpiryOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  // ── Expiry options ───────────────────────────────────────
+  const EXPIRY_OPTIONS = [
+    { label: "1 month", months: 1 },
+    { label: "2 months", months: 2 },
+    { label: "3 months", months: 3 },
+    { label: "4 months", months: 4 },
+    { label: "5 months", months: 5 },
+    { label: "6 months", months: 6 },
+    { label: "7 months", months: 7 },
+    { label: "Permanent", months: 0 },
+  ];
+
+  async function handleSetExpiry(months: number) {
+    const expiresAtValue = months === 0
+      ? null
+      : new Date(Date.now() + months * 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error } = await supabase
+      .from("resumes")
+      .update({ expires_at: expiresAtValue })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Expiry update error:", error);
+    } else {
+      setCurrentExpiry(expiresAtValue);
+    }
+    setExpiryOpen(false);
+  }
+
+  function getExpiryLabel(): string {
+    if (!currentExpiry) return "Permanent";
+    const exp = new Date(currentExpiry);
+    if (exp <= new Date()) return "Expired";
+    return `Expires ${exp.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+  }
+
+  const isLinkDead = currentExpiry !== null && new Date(currentExpiry) <= new Date();
+
+  async function handleKillLink() {
+    if (!confirm(`Kill the link for "${title}"? Viewers will see an expiry page.`)) return;
+
+    const { error } = await supabase
+      .from("resumes")
+      .update({ expires_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Kill link error:", error);
+      alert("Failed to terminate link.");
+    } else {
+      setCurrentExpiry(new Date().toISOString());
+    }
+  }
 
   // ── Rename resume ────────────────────────────────────────
   async function handleRename() {
@@ -226,6 +297,37 @@ export default function ResumeCard({
         )}
       </div>
 
+      {/* Expiry */}
+      <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+        <div className="relative" ref={expiryRef}>
+          <button
+            onClick={() => setExpiryOpen((v) => !v)}
+            className={`flex items-center gap-1.5 text-[11px] transition ${
+              currentExpiry && new Date(currentExpiry) <= new Date()
+                ? "text-red-400"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            <Timer className="h-3 w-3" />
+            {getExpiryLabel()}
+          </button>
+
+          {expiryOpen && (
+            <div className="absolute left-0 top-full z-50 mt-1 w-40 overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl">
+              {EXPIRY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => handleSetExpiry(opt.months)}
+                  className="flex w-full items-center px-3 py-2 text-left text-xs text-zinc-300 transition hover:bg-zinc-800 hover:text-zinc-100"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="mb-5 grid grid-cols-2 gap-3">
         <div className="rounded-lg bg-zinc-800/60 px-3 py-2">
@@ -271,6 +373,20 @@ export default function ResumeCard({
           <Copy className="h-3 w-3" />
           {copied ? "Copied!" : "Copy Link"}
         </button>
+
+        {!isLinkDead && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleKillLink();
+            }}
+            className="flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400 transition hover:border-red-500/50 hover:bg-red-500/20"
+          >
+            <ShieldOff className="h-3 w-3" />
+            Kill
+          </button>
+        )}
 
         <button
           type="button"

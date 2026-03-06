@@ -10,6 +10,7 @@ interface ResumeWithStats {
   id: string;
   title: string;
   slug: string | null;
+  expiresAt: string | null;
   totalViews: number;
   avgDuration: number;
   lastViewed: string | null;
@@ -32,7 +33,7 @@ export default function DashboardPage() {
 
     const { data: rows, error } = await supabase
       .from("resumes")
-      .select("id, title, slug, created_at")
+      .select("id, title, slug, expires_at, created_at")
       .order("created_at", { ascending: false });
 
     if (error || !rows) {
@@ -74,6 +75,7 @@ export default function DashboardPage() {
           id: r.id,
           title: r.title,
           slug: r.slug ?? null,
+          expiresAt: r.expires_at ?? null,
           totalViews: count ?? 0,
           avgDuration: avg,
           lastViewed: latest?.timestamp ?? null,
@@ -212,6 +214,7 @@ export default function DashboardPage() {
                 id={r.id}
                 title={r.title}
                 slug={r.slug}
+                expiresAt={r.expiresAt}
                 totalViews={r.totalViews}
                 lastViewed={r.lastViewed}
                 onDelete={fetchResumes}
