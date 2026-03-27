@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { Clock, Eye, FileText, TrendingUp, Upload } from "lucide-react";
 import ResumeCard from "@/components/dashboard/resume-card";
 import UploadButton from "@/components/dashboard/upload-button";
-import { Eye, Clock, FileText, TrendingUp } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface ResumeWithStats {
   id: string;
@@ -27,7 +27,6 @@ export default function DashboardPage() {
   const [resumes, setResumes] = useState<ResumeWithStats[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ── Fetch resumes + aggregated view stats ────────────────
   const fetchResumes = useCallback(async () => {
     setLoading(true);
 
@@ -44,14 +43,12 @@ export default function DashboardPage() {
 
     const withStats: ResumeWithStats[] = await Promise.all(
       rows.map(async (r) => {
-        // Count view events
         const { count } = await supabase
           .from("analytics_events")
           .select("*", { count: "exact", head: true })
           .eq("resume_id", r.id)
           .eq("event_type", "view");
 
-        // Get events for avg duration
         const { data: evts } = await supabase
           .from("analytics_events")
           .select("duration_seconds")
@@ -61,7 +58,6 @@ export default function DashboardPage() {
         const totalDur = evts?.reduce((s, e) => s + (e.duration_seconds ?? 0), 0) ?? 0;
         const avg = evts && evts.length > 0 ? Math.round(totalDur / evts.length) : 0;
 
-        // Last viewed timestamp
         const { data: latest } = await supabase
           .from("analytics_events")
           .select("timestamp")
@@ -91,165 +87,130 @@ export default function DashboardPage() {
     fetchResumes();
   }, [fetchResumes]);
 
-  // ── Aggregated summary stats ─────────────────────────────
-  const totalViews = resumes.reduce((s, r) => s + r.totalViews, 0);
+  const totalViews = resumes.reduce((sum, resume) => sum + resume.totalViews, 0);
   const totalResumes = resumes.length;
-  const allDurations = resumes.filter((r) => r.totalViews > 0);
-  const globalAvgDuration =
-    allDurations.length > 0
+  const viewedResumes = resumes.filter((resume) => resume.totalViews > 0);
+  const avgDuration =
+    viewedResumes.length > 0
       ? Math.round(
-          allDurations.reduce((s, r) => s + r.avgDuration, 0) /
-            allDurations.length,
+          viewedResumes.reduce((sum, resume) => sum + resume.avgDuration, 0) /
+            viewedResumes.length,
         )
       : 0;
-  const mostViewed = resumes.length > 0
-    ? resumes.reduce((best, r) => (r.totalViews > best.totalViews ? r : best))
-    : null;
+  const topResume =
+    resumes.length > 0
+      ? resumes.reduce((best, item) => (item.totalViews > best.totalViews ? item : best))
+      : null;
 
-  // ── Loading skeleton ─────────────────────────────────────
   if (loading) {
     return (
-      <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="h-8 w-48 animate-pulse rounded bg-zinc-800" />
-            <div className="h-10 w-36 animate-pulse rounded-lg bg-zinc-800" />
-          </div>
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-20 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/60"
-              />
-            ))}
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-52 animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/60"
-              />
-            ))}
-          </div>
-        </div>
+      <main className="page-frame pb-10 pt-6">
+        <section className="neo-panel p-5 sm:p-6">
+          <div className="h-3 w-24 animate-pulse bg-[var(--color-bg-hover)]" />
+          <div className="mt-3 h-10 w-56 animate-pulse bg-[var(--color-bg-hover)]" />
+          <div className="mt-2 h-4 w-80 max-w-full animate-pulse bg-[var(--color-bg-hover)]" />
+        </section>
+
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((item) => (
+            <div key={item} className="neo-panel-soft h-28 animate-pulse bg-[var(--color-bg-card-solid)]" />
+          ))}
+        </section>
+
+        <section className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="neo-panel-soft h-56 animate-pulse bg-[var(--color-bg-card-solid)]" />
+          ))}
+        </section>
       </main>
     );
   }
 
-  // ── Main render ──────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-[var(--bg-page)] px-6 py-12">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main className="page-frame pb-10 pt-6">
+      <section className="neo-panel p-5 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
-              Dashboard
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Manage your resumes and track who&apos;s viewing them.
+            <p className="neo-label text-[var(--color-text-muted)]">workspace</p>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">Dashboard</h1>
+            <p className="mt-2 max-w-2xl text-sm text-[var(--color-text-secondary)] sm:text-base">
+              Upload resumes, share links, and check engagement without extra noise.
             </p>
           </div>
           <UploadButton onUploadComplete={fetchResumes} />
         </div>
+      </section>
 
-        {/* ── Summary stat cards ────────────────────────────── */}
-        {resumes.length > 0 && (
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard
-              icon={<Eye className="h-5 w-5 text-zinc-100" />}
-              label="Total Views"
-              value={String(totalViews)}
-            />
-            <SummaryCard
-              icon={<FileText className="h-5 w-5 text-blue-400" />}
-              label="Resumes"
-              value={String(totalResumes)}
-            />
-            <SummaryCard
-              icon={<Clock className="h-5 w-5 text-purple-400" />}
-              label="Avg. View Duration"
-              value={formatDuration(globalAvgDuration)}
-            />
-            <SummaryCard
-              icon={<TrendingUp className="h-5 w-5 text-orange-400" />}
-              label="Most Viewed"
-              value={
-                mostViewed && mostViewed.totalViews > 0
-                  ? `${mostViewed.title.slice(0, 18)}${mostViewed.title.length > 18 ? "…" : ""} (${mostViewed.totalViews})`
-                  : "—"
-              }
-            />
-          </div>
-        )}
+      {resumes.length > 0 && (
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard icon={Eye} label="Total views" value={String(totalViews)} />
+          <MetricCard icon={FileText} label="Resumes" value={String(totalResumes)} />
+          <MetricCard icon={Clock} label="Avg. duration" value={formatDuration(avgDuration)} />
+          <MetricCard
+            icon={TrendingUp}
+            label="Top resume"
+            value={topResume && topResume.totalViews > 0 ? topResume.title : "-"}
+          />
+        </section>
+      )}
 
-        {/* Empty state */}
-        {resumes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 py-24">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mb-4 h-12 w-12 text-zinc-700"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <p className="mb-6 text-zinc-500">
-              No resumes yet. Upload your first one to start tracking.
-            </p>
+      {resumes.length === 0 ? (
+        <section className="neo-panel mt-5 p-8 text-center sm:p-10">
+          <span className="mx-auto inline-flex h-12 w-12 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-page)]">
+            <Upload className="h-5 w-5" />
+          </span>
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight">No resumes yet</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-[var(--color-text-secondary)]">
+            Upload your first PDF to create a share link and start tracking views.
+          </p>
+          <div className="mt-6 flex justify-center">
             <UploadButton onUploadComplete={fetchResumes} />
           </div>
-        ) : (
-          /* Resume grid */
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {resumes.map((r) => (
+        </section>
+      ) : (
+        <section className="mt-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="neo-label text-[var(--color-text-muted)]">your resumes</p>
+            <span className="neo-panel-soft px-2 py-1 text-xs font-bold">{resumes.length}</span>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {resumes.map((resume) => (
               <ResumeCard
-                key={r.id}
-                id={r.id}
-                title={r.title}
-                slug={r.slug}
-                expiresAt={r.expiresAt}
-                totalViews={r.totalViews}
-                lastViewed={r.lastViewed}
+                key={resume.id}
+                id={resume.id}
+                title={resume.title}
+                slug={resume.slug}
+                expiresAt={resume.expiresAt}
+                totalViews={resume.totalViews}
+                lastViewed={resume.lastViewed}
                 onDelete={fetchResumes}
                 onRename={fetchResumes}
               />
             ))}
           </div>
-        )}
-      </div>
+        </section>
+      )}
     </main>
   );
 }
 
-/* ── Summary card sub-component ─────────────────────────────── */
-
-function SummaryCard({
-  icon,
+function MetricCard({
+  icon: Icon,
   label,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/80 px-5 py-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800/80">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-wider text-zinc-500">
-          {label}
-        </p>
-        <p className="truncate text-lg font-bold text-zinc-100">{value}</p>
-      </div>
-    </div>
+    <article className="neo-panel-soft bg-[var(--color-bg-card-solid)] p-4">
+      <span className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-page)]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">{label}</p>
+      <p className="mt-1 truncate text-xl font-extrabold tracking-tight">{value}</p>
+    </article>
   );
 }
