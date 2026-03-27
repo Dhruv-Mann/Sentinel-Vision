@@ -16,6 +16,12 @@
 # next.js
 /.next/
 /out/
+/.turbo/
+
+# tooling caches
+/.eslintcache
+/.pnpm-store/
+/.cache/
 
 # production
 /build
