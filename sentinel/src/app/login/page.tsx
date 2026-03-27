@@ -1,37 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
-  Shield,
-  Mail,
-  Lock,
-  LogIn,
-  UserPlus,
-  KeyRound,
   ArrowLeft,
   ChevronLeft,
+  Eye,
+  EyeOff,
+  KeyRound,
+  Lock,
+  LogIn,
+  Mail,
+  Shield,
+  UserPlus,
 } from "lucide-react";
-import { WebGLShader } from "@/components/ui/web-gl-shader";
 
 type Mode = "signin" | "signup" | "verify" | "forgot" | "reset";
 
-/* ── Password rules ───────────────────────────────────────── */
-
 const PASSWORD_RULES = [
-  { label: "At least 8 characters", test: (pw: string) => pw.length >= 8 },
-  { label: "One uppercase letter (A-Z)", test: (pw: string) => /[A-Z]/.test(pw) },
-  { label: "One lowercase letter (a-z)", test: (pw: string) => /[a-z]/.test(pw) },
-  { label: "One number (0-9)", test: (pw: string) => /\d/.test(pw) },
-  {
-    label: "One special character (!@#$%…)",
-    test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
-  },
+  (pw: string) => pw.length >= 8,
+  (pw: string) => /[A-Z]/.test(pw),
+  (pw: string) => /[a-z]/.test(pw),
+  (pw: string) => /\d/.test(pw),
+  (pw: string) => /[^A-Za-z0-9]/.test(pw),
 ];
 
 function isPasswordValid(pw: string): boolean {
-  return PASSWORD_RULES.every((r) => r.test(pw));
+  return PASSWORD_RULES.every((rule) => rule(pw));
 }
 
 export default function LoginPage() {
@@ -40,20 +36,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  /* ── Sign In ──────────────────────────────────────────── */
-  async function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const { error: err } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
 
     if (err) {
       setError(err.message);
@@ -64,23 +57,19 @@ export default function LoginPage() {
     window.location.href = "/dashboard";
   }
 
-  /* ── Sign Up → sends OTP email ────────────────────────── */
-  async function handleSignUp(e: React.FormEvent) {
+  async function handleSignUp(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setMessage(null);
 
     if (!isPasswordValid(password)) {
-      setError("Password does not meet all requirements.");
+      setError("Use 8+ chars with upper, lower, number, and symbol.");
       setLoading(false);
       return;
     }
 
-    const { error: err } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { error: err } = await supabase.auth.signUp({ email, password });
 
     if (err) {
       setError(err.message);
@@ -88,18 +77,15 @@ export default function LoginPage() {
       return;
     }
 
-    // Move to OTP verification step
-    setMessage("A verification code has been sent to your email.");
+    setMessage("A verification code was sent to your email.");
     setMode("verify");
     setLoading(false);
   }
 
-  /* ── Verify OTP code ──────────────────────────────────── */
-  async function handleVerify(e: React.FormEvent) {
+  async function handleVerify(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     const { error: err } = await supabase.auth.verifyOtp({
       email,
@@ -116,12 +102,10 @@ export default function LoginPage() {
     window.location.href = "/dashboard";
   }
 
-  /* ── Forgot password → send recovery code ─────────────── */
-  async function handleForgot(e: React.FormEvent) {
+  async function handleForgot(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     const { error: err } = await supabase.auth.resetPasswordForEmail(email);
 
@@ -131,20 +115,18 @@ export default function LoginPage() {
       return;
     }
 
-    setMessage("A recovery code has been sent to your email.");
+    setMessage("Recovery code sent. Check your email.");
     setMode("reset");
     setLoading(false);
   }
 
-  /* ── Reset password → verify OTP + set new password ───── */
-  async function handleReset(e: React.FormEvent) {
+  async function handleReset(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setMessage(null);
 
     if (!isPasswordValid(password)) {
-      setError("Password does not meet all requirements.");
+      setError("Use 8+ chars with upper, lower, number, and symbol.");
       setLoading(false);
       return;
     }
@@ -155,7 +137,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Verify recovery OTP — this creates a session
     const { error: otpErr } = await supabase.auth.verifyOtp({
       email,
       token: otp,
@@ -168,10 +149,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Now update the password
-    const { error: updateErr } = await supabase.auth.updateUser({
-      password,
-    });
+    const { error: updateErr } = await supabase.auth.updateUser({ password });
 
     if (updateErr) {
       setError(updateErr.message);
@@ -182,425 +160,316 @@ export default function LoginPage() {
     window.location.href = "/dashboard";
   }
 
-  /* ── Switch modes ─────────────────────────────────────── */
-  function switchTo(target: Mode) {
+  function goTo(target: Mode) {
     setMode(target);
     setError(null);
     setMessage(null);
-    setOtp("");
     setPassword("");
     setConfirmPassword("");
+    setOtp("");
+    setShowPassword(false);
   }
 
-  /* ── Titles per mode ──────────────────────────────────── */
   const titles: Record<Mode, { heading: string; sub: string }> = {
-    signin: {
-      heading: "Welcome back",
-      sub: "Sign in to your Sentinel account",
-    },
-    signup: {
-      heading: "Create an account",
-      sub: "Start tracking your resume views",
-    },
-    verify: {
-      heading: "Verify your email",
-      sub: `Enter the code sent to ${email}`,
-    },
-    forgot: {
-      heading: "Forgot password?",
-      sub: "We\u2019ll send a recovery code to your email",
-    },
-    reset: {
-      heading: "Reset your password",
-      sub: `Enter the code sent to ${email}`,
-    },
+    signin: { heading: "Sign in", sub: "Access your dashboard." },
+    signup: { heading: "Create account", sub: "Start tracking your resume links." },
+    verify: { heading: "Verify email", sub: `Enter the code sent to ${email || "your email"}.` },
+    forgot: { heading: "Forgot password", sub: "Get a recovery code by email." },
+    reset: { heading: "Reset password", sub: "Use your code and set a new password." },
   };
 
   return (
-    <>
-      <WebGLShader />
-
-      {/* Back to Home */}
+    <main className="page-frame min-h-screen py-6 sm:py-10">
       <Link
         href="/"
-        className="fixed top-6 left-6 z-50 inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+        className="neo-panel-soft inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold hover:bg-[var(--color-bg-hover)]"
       >
         <ChevronLeft className="h-4 w-4" />
         Back
       </Link>
 
-    <main className="relative z-10 flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 p-8 shadow-xl shadow-black/40 backdrop-blur-xl">
-        {/* Logo / Title */}
-        <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white">
-            <Shield className="h-6 w-6" />
+      <section className="mx-auto mt-5 w-full max-w-md neo-panel p-5 sm:p-7">
+        <div className="mb-6 flex items-start gap-3">
+          <span className="inline-flex h-11 w-11 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-accent)] text-white">
+            <Shield className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="neo-label text-[var(--color-text-muted)]">auth</p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight">{titles[mode].heading}</h1>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{titles[mode].sub}</p>
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-100">
-            {titles[mode].heading}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            {titles[mode].sub}
-          </p>
         </div>
 
-        {/* ─── SIGN IN FORM ─────────────────────────────── */}
+        {message && <Notice tone="success" text={message} />}
+        {error && <Notice tone="error" text={error} />}
+
         {mode === "signin" && (
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <InputField
+          <form className="mt-4 space-y-3" onSubmit={handleSignIn}>
+            <InputRow
               id="email"
               label="Email"
-              type="email"
-              placeholder="you@example.com"
               value={email}
               onChange={setEmail}
+              type="email"
+              placeholder="you@example.com"
               icon={<Mail className="h-4 w-4" />}
             />
-            <InputField
+            <InputRow
               id="password"
               label="Password"
-              type="password"
-              placeholder="••••••••"
               value={password}
               onChange={setPassword}
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter password"
               icon={<Lock className="h-4 w-4" />}
-            />
-
-            {error && <ErrorMsg text={error} />}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
-            >
-              <LogIn className="h-4 w-4" />
-              {loading ? "Signing in\u2026" : "Sign In"}
-            </button>
-
-            <div className="flex items-center justify-between pt-2 text-sm text-zinc-500">
-              <button
-                type="button"
-                onClick={() => switchTo("forgot")}
-                className="font-medium text-zinc-400 transition hover:text-white"
-              >
-                Forgot password?
-              </button>
-              <span>
-                Not a user?{" "}
+              suffix={
                 <button
                   type="button"
-                  onClick={() => switchTo("signup")}
-                  className="font-medium text-white transition hover:text-zinc-300"
+                  className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                  onClick={() => setShowPassword((v) => !v)}
                 >
-                  Sign Up
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
-              </span>
+              }
+            />
+            <PrimaryButton loading={loading} icon={<LogIn className="h-4 w-4" />}>
+              {loading ? "Signing in..." : "Sign in"}
+            </PrimaryButton>
+            <div className="flex items-center justify-between pt-1 text-xs text-[var(--color-text-muted)]">
+              <button type="button" onClick={() => goTo("forgot")} className="hover:text-[var(--color-text-primary)]">
+                Forgot password?
+              </button>
+              <button type="button" onClick={() => goTo("signup")} className="font-semibold hover:text-[var(--color-text-primary)]">
+                Create account
+              </button>
             </div>
           </form>
         )}
 
-        {/* ─── SIGN UP FORM ─────────────────────────────── */}
         {mode === "signup" && (
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <InputField
-              id="email"
+          <form className="mt-4 space-y-3" onSubmit={handleSignUp}>
+            <InputRow
+              id="email-signup"
               label="Email"
-              type="email"
-              placeholder="you@example.com"
               value={email}
               onChange={setEmail}
+              type="email"
+              placeholder="you@example.com"
               icon={<Mail className="h-4 w-4" />}
             />
-            <InputField
-              id="password"
+            <InputRow
+              id="password-signup"
               label="Password"
-              type="password"
-              placeholder="Create a strong password"
               value={password}
               onChange={setPassword}
+              type={showPassword ? "text" : "password"}
+              placeholder="Create password"
               icon={<Lock className="h-4 w-4" />}
+              suffix={
+                <button
+                  type="button"
+                  className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+                  onClick={() => setShowPassword((v) => !v)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              }
             />
-
-            {/* Live password checklist */}
-            {password.length > 0 && <PasswordChecklist password={password} />}
-
-            {error && <ErrorMsg text={error} />}
-
-            <button
-              type="submit"
-              disabled={loading || !isPasswordValid(password)}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
+            <p className="text-xs text-[var(--color-text-muted)]">Use 8+ chars with upper, lower, number, and symbol.</p>
+            <PrimaryButton
+              loading={loading}
+              icon={<UserPlus className="h-4 w-4" />}
+              disabled={!isPasswordValid(password)}
             >
-              <UserPlus className="h-4 w-4" />
-              {loading ? "Creating account\u2026" : "Sign Up"}
+              {loading ? "Creating account..." : "Create account"}
+            </PrimaryButton>
+            <button type="button" onClick={() => goTo("signin")} className="text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+              Back to sign in
             </button>
-
-            <p className="pt-2 text-center text-sm text-zinc-500">
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={() => switchTo("signin")}
-                className="font-medium text-white transition hover:text-zinc-300"
-              >
-                Sign In
-              </button>
-            </p>
           </form>
         )}
 
-        {/* ─── OTP VERIFICATION ─────────────────────────── */}
         {mode === "verify" && (
-          <form onSubmit={handleVerify} className="space-y-4">
-            {message && <SuccessMsg text={message} />}
-
-            <InputField
+          <form className="mt-4 space-y-3" onSubmit={handleVerify}>
+            <InputRow
               id="otp"
-              label="Verification Code"
+              label="Verification code"
+              value={otp}
+              onChange={setOtp}
               type="text"
               placeholder="Enter code"
-              value={otp}
-              onChange={setOtp}
               icon={<KeyRound className="h-4 w-4" />}
               maxLength={8}
               autoFocus
             />
-
-            {error && <ErrorMsg text={error} />}
-
-            <button
-              type="submit"
-              disabled={loading || otp.length < 6}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
-            >
-              <KeyRound className="h-4 w-4" />
-              {loading ? "Verifying\u2026" : "Verify & Continue"}
+            <PrimaryButton loading={loading} icon={<KeyRound className="h-4 w-4" />} disabled={otp.length < 6}>
+              {loading ? "Verifying..." : "Verify"}
+            </PrimaryButton>
+            <button type="button" onClick={() => goTo("signup")} className="text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
+              Resend code
             </button>
-
-            <p className="pt-2 text-center text-sm text-zinc-500">
-              Didn&apos;t receive a code?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("signup");
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="font-medium text-white transition hover:text-zinc-300"
-              >
-                Resend
-              </button>
-            </p>
           </form>
         )}
 
-        {/* ─── FORGOT PASSWORD ──────────────────────────── */}
         {mode === "forgot" && (
-          <form onSubmit={handleForgot} className="space-y-4">
-            <InputField
-              id="forgot-email"
+          <form className="mt-4 space-y-3" onSubmit={handleForgot}>
+            <InputRow
+              id="email-forgot"
               label="Email"
-              type="email"
-              placeholder="you@example.com"
               value={email}
               onChange={setEmail}
+              type="email"
+              placeholder="you@example.com"
               icon={<Mail className="h-4 w-4" />}
             />
-
-            {error && <ErrorMsg text={error} />}
-
+            <PrimaryButton loading={loading} icon={<Mail className="h-4 w-4" />}>
+              {loading ? "Sending..." : "Send recovery code"}
+            </PrimaryButton>
             <button
-              type="submit"
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
+              type="button"
+              onClick={() => goTo("signin")}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
             >
-              <Mail className="h-4 w-4" />
-              {loading ? "Sending\u2026" : "Send Recovery Code"}
+              <ArrowLeft className="h-3 w-3" />
+              Back to sign in
             </button>
-
-            <p className="pt-2 text-center text-sm text-zinc-500">
-              <button
-                type="button"
-                onClick={() => switchTo("signin")}
-                className="inline-flex items-center gap-1 font-medium text-white transition hover:text-zinc-300"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Back to Sign In
-              </button>
-            </p>
           </form>
         )}
 
-        {/* ─── RESET PASSWORD ───────────────────────────── */}
         {mode === "reset" && (
-          <form onSubmit={handleReset} className="space-y-4">
-            {message && <SuccessMsg text={message} />}
-
-            <InputField
-              id="recovery-code"
-              label="Recovery Code"
-              type="text"
-              placeholder="Enter code from email"
+          <form className="mt-4 space-y-3" onSubmit={handleReset}>
+            <InputRow
+              id="otp-reset"
+              label="Recovery code"
               value={otp}
               onChange={setOtp}
+              type="text"
+              placeholder="Enter code"
               icon={<KeyRound className="h-4 w-4" />}
               maxLength={8}
               autoFocus
             />
-
-            <InputField
-              id="new-password"
-              label="New Password"
-              type="password"
-              placeholder="Create a strong password"
+            <InputRow
+              id="password-reset"
+              label="New password"
               value={password}
               onChange={setPassword}
+              type="password"
+              placeholder="Create password"
               icon={<Lock className="h-4 w-4" />}
             />
-
-            {password.length > 0 && <PasswordChecklist password={password} />}
-
-            <InputField
-              id="confirm-password"
-              label="Confirm Password"
-              type="password"
-              placeholder="Re-enter your password"
+            <InputRow
+              id="password-confirm"
+              label="Confirm password"
               value={confirmPassword}
               onChange={setConfirmPassword}
+              type="password"
+              placeholder="Repeat password"
               icon={<Lock className="h-4 w-4" />}
             />
-
-            {confirmPassword.length > 0 && password !== confirmPassword && (
-              <p className="text-xs text-red-400">Passwords do not match</p>
-            )}
-
-            {error && <ErrorMsg text={error} />}
-
-            <button
-              type="submit"
-              disabled={
-                loading ||
-                !isPasswordValid(password) ||
-                password !== confirmPassword ||
-                otp.length < 6
-              }
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/90 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-white disabled:opacity-50"
+            <PrimaryButton
+              loading={loading}
+              icon={<Lock className="h-4 w-4" />}
+              disabled={!isPasswordValid(password) || password !== confirmPassword || otp.length < 6}
             >
-              <Lock className="h-4 w-4" />
-              {loading ? "Resetting\u2026" : "Reset Password"}
+              {loading ? "Resetting..." : "Reset password"}
+            </PrimaryButton>
+            <button
+              type="button"
+              onClick={() => goTo("signin")}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              Back to sign in
             </button>
-
-            <p className="pt-2 text-center text-sm text-zinc-500">
-              <button
-                type="button"
-                onClick={() => switchTo("signin")}
-                className="inline-flex items-center gap-1 font-medium text-white transition hover:text-zinc-300"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Back to Sign In
-              </button>
-            </p>
           </form>
         )}
-      </div>
+      </section>
     </main>
-    </>
   );
 }
 
-/* ── Reusable sub-components ────────────────────────────── */
-
-function PasswordChecklist({ password }: { password: string }) {
-  return (
-    <div className="rounded-lg bg-zinc-800/60 px-3 py-2.5 space-y-1.5">
-      <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-        Password requirements
-      </p>
-      {PASSWORD_RULES.map((rule) => {
-        const passed = rule.test(password);
-        return (
-          <div key={rule.label} className="flex items-center gap-2 text-xs">
-            <span
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                passed
-                  ? "bg-white/20 text-white"
-                  : "bg-zinc-700 text-zinc-500"
-              }`}
-            >
-              {passed ? "\u2713" : "\u00b7"}
-            </span>
-            <span className={passed ? "text-white" : "text-zinc-500"}>
-              {rule.label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function InputField({
+function InputRow({
   id,
   label,
-  type,
-  placeholder,
   value,
   onChange,
+  type,
+  placeholder,
   icon,
-  minLength,
+  suffix,
   maxLength,
   autoFocus,
 }: {
   id: string;
   label: string;
+  value: string;
+  onChange: (value: string) => void;
   type: string;
   placeholder: string;
-  value: string;
-  onChange: (v: string) => void;
   icon: React.ReactNode;
-  minLength?: number;
+  suffix?: React.ReactNode;
   maxLength?: number;
   autoFocus?: boolean;
 }) {
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-zinc-500"
-      >
+      <label htmlFor={id} className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-text-muted)]">
         {label}
       </label>
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600">
-          {icon}
-        </span>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">{icon}</span>
         <input
           id={id}
           type={type}
-          required
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          className="w-full border-2 border-[var(--color-border-main)] bg-[var(--color-bg-input)] px-10 py-2.5 text-sm font-medium outline-none transition-colors focus:bg-[var(--color-bg-hover)]"
           placeholder={placeholder}
-          minLength={minLength}
+          required
           maxLength={maxLength}
           autoFocus={autoFocus}
-          className="w-full rounded-lg border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-white/30 focus:ring-1 focus:ring-white/20 backdrop-blur-sm"
         />
+        {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2">{suffix}</span>}
       </div>
     </div>
   );
 }
 
-function ErrorMsg({ text }: { text: string }) {
+function PrimaryButton({
+  children,
+  loading,
+  icon,
+  disabled,
+}: {
+  children: React.ReactNode;
+  loading?: boolean;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}) {
   return (
-    <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">
-      {text}
-    </p>
+    <button
+      type="submit"
+      disabled={loading || disabled}
+      className="inline-flex w-full items-center justify-center gap-2 border-2 border-[var(--color-border-main)] bg-[var(--color-accent)] px-4 py-2.5 text-sm font-extrabold text-white shadow-[4px_4px_0_var(--color-border-main)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
 
-function SuccessMsg({ text }: { text: string }) {
+function Notice({ tone, text }: { tone: "error" | "success"; text: string }) {
+  const isError = tone === "error";
   return (
-    <p className="rounded-lg bg-zinc-100/10 px-3 py-2 text-xs text-zinc-200">
+    <p
+      className="mb-3 border-2 px-3 py-2 text-xs font-semibold"
+      style={{
+        borderColor: isError ? "var(--color-error)" : "var(--color-success)",
+        background: isError ? "var(--color-error-bg)" : "var(--color-success-bg)",
+        color: isError ? "var(--color-error)" : "var(--color-success)",
+      }}
+    >
       {text}
     </p>
   );
