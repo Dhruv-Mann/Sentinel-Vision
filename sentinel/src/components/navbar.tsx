@@ -3,24 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Shield, LogOut, LayoutDashboard, Sun, Moon } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Home, LayoutDashboard, LogOut, Menu, Moon, Shield, Sun, X } from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
 import { supabase } from "@/lib/supabase";
 
-/**
- * Shared navigation bar – rendered on dashboard pages.
- * Shows the Sentinel logo, nav links, and a sign-out button.
- */
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { theme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
-  useEffect(() => setMounted(true), []);
+  const navLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/", label: "Home", icon: Home },
+  ];
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -28,103 +27,144 @@ export default function Navbar() {
     });
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
 
-  const initial = email ? email[0].toUpperCase() : "?";
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.push("/login");
   }
 
-  return (
-    <nav className="sticky top-0 z-50 border-b border-[var(--border-main)] bg-[var(--bg-page)]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        {/* Left – Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-zinc-100" />
-          <span className="text-sm font-bold tracking-tight text-zinc-100">
-            Sentinel
-          </span>
-        </Link>
+  const initial = email ? email.charAt(0).toUpperCase() : "?";
 
-        {/* Center – Nav links */}
-        <div className="flex items-center gap-1">
-          <Link
-            href="/dashboard"
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${
-              pathname === "/dashboard"
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
-            }`}
-          >
-            <LayoutDashboard className="h-3.5 w-3.5" />
-            Dashboard
+  return (
+    <nav className="page-frame pt-4">
+      <div className="neo-panel px-3 py-3 sm:px-4">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" className="inline-flex items-center gap-2">
+            <span className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-accent)] text-white">
+              <Shield className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-extrabold tracking-tight">Sentinel</span>
+              <span className="neo-label text-[var(--color-text-muted)]">workspace</span>
+            </span>
           </Link>
+
+          <div className="hidden items-center gap-2 md:flex">
+            {navLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`inline-flex items-center gap-1.5 border-2 px-3 py-2 text-xs font-bold transition-colors ${
+                    active
+                      ? "border-[var(--color-border-main)] bg-[var(--color-accent)] text-white"
+                      : "border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] hover:bg-[var(--color-bg-hover)]"
+                  }`}
+                >
+                  <link.icon className="h-3.5 w-3.5" />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] hover:bg-[var(--color-bg-hover)]"
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] md:hidden"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label="Toggle navigation"
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+
+            <div className="relative hidden md:block" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen((open) => !open)}
+                className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] text-sm font-extrabold"
+                title={email ?? "Account"}
+              >
+                {initial}
+              </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 top-11 z-20 w-64 border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] p-3 shadow-[5px_5px_0_var(--color-border-main)]">
+                  <p className="neo-label text-[var(--color-text-muted)]">Signed in as</p>
+                  <p className="mt-1 truncate text-sm font-semibold">{email ?? "-"}</p>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 border-2 border-[var(--color-border-main)] bg-[var(--color-error-bg)] px-3 py-2 text-xs font-bold text-[var(--color-error)] hover:bg-[var(--color-error)] hover:text-white"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right – Theme toggle + User menu */}
-        <div className="flex items-center gap-3">
-          {/* Theme toggle */}
-          {mounted && (
-            <button
-              type="button"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </button>
-          )}
+        {mobileMenuOpen && (
+          <div className="mt-3 border-t-2 border-[var(--color-border-main)] pt-3 md:hidden">
+            <div className="grid gap-2">
+              {navLinks.map((link) => {
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`inline-flex items-center gap-2 border-2 px-3 py-2 text-sm font-bold ${
+                      active
+                        ? "border-[var(--color-border-main)] bg-[var(--color-accent)] text-white"
+                        : "border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)]"
+                    }`}
+                  >
+                    <link.icon className="h-4 w-4" />
+                    {link.label}
+                  </Link>
+                );
+              })}
 
-          {/* User avatar */}
-          <div className="relative" ref={menuRef}>
-            <button
-              type="button"
-              onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100/15 text-sm font-semibold text-zinc-100 ring-1 ring-zinc-100/30 transition hover:bg-zinc-100/25"
-              title={email ?? "Account"}
-            >
-              {initial}
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl border border-[var(--border-main)] bg-[var(--bg-card-solid)] shadow-xl shadow-black/40">
-                {/* Email */}
-                <div className="border-b border-[var(--border-main)] px-4 py-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                    Signed in as
-                  </p>
-                  <p className="mt-0.5 truncate text-sm font-medium text-[var(--text-primary)]">
-                    {email ?? "\u2014"}
-                  </p>
-                </div>
-                {/* Sign out */}
+              <div className="neo-panel-soft mt-1 p-3">
+                <p className="neo-label text-[var(--color-text-muted)]">Account</p>
+                <p className="mt-1 truncate text-sm font-semibold">{email ?? "Signed out"}</p>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-xs font-medium text-[var(--text-muted)] transition hover:bg-[var(--bg-input)] hover:text-red-400"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 border-2 border-[var(--color-border-main)] bg-[var(--color-error-bg)] px-3 py-2 text-xs font-bold text-[var(--color-error)]"
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  Sign Out
+                  Sign out
                 </button>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </nav>
   );
