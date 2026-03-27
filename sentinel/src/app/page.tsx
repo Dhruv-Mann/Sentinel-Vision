@@ -1,5 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Github, ShieldCheck, Upload, Link2, BarChart3 } from "lucide-react";
+import { ArrowRight, Github, ShieldCheck, Upload, Link2, BarChart3, UserRound } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const STEPS = [
   {
@@ -20,6 +24,32 @@ const STEPS = [
 ];
 
 export default function Home() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      setIsSignedIn(Boolean(data.user));
+      setAuthReady(true);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setIsSignedIn(Boolean(session?.user));
+      setAuthReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen">
       <nav className="page-frame pt-5">
@@ -41,12 +71,28 @@ export default function Home() {
             >
               Dashboard
             </Link>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 border-2 border-[var(--color-border-main)] bg-[var(--color-accent)] px-3 py-2 text-xs font-extrabold text-white shadow-[3px_3px_0_var(--color-border-main)] transition-transform hover:-translate-y-0.5"
-            >
-              Sign In
-            </Link>
+            {!authReady ? (
+              <span
+                aria-hidden="true"
+                className="inline-flex h-9 w-9 animate-pulse items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)]"
+              />
+            ) : isSignedIn ? (
+              <Link
+                href="/dashboard"
+                title="Profile"
+                aria-label="Open profile"
+                className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] shadow-[3px_3px_0_var(--color-border-main)] transition-transform hover:-translate-y-0.5"
+              >
+                <UserRound className="h-4 w-4" />
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 border-2 border-[var(--color-border-main)] bg-[var(--color-accent)] px-3 py-2 text-xs font-extrabold text-white shadow-[3px_3px_0_var(--color-border-main)] transition-transform hover:-translate-y-0.5"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </nav>

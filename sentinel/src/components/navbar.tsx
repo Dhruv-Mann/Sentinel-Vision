@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, LayoutDashboard, LogOut, Menu, Moon, Shield, Sun, X } from "lucide-react";
-import { useTheme } from "@/components/theme-provider";
+import { Home, LayoutDashboard, LogOut, Menu, Shield, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function Navbar() {
@@ -14,7 +13,6 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { theme, toggleTheme } = useTheme();
 
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -80,16 +78,6 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] hover:bg-[var(--color-bg-hover)]"
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-
             <button
               type="button"
               className="inline-flex h-9 w-9 items-center justify-center border-2 border-[var(--color-border-main)] bg-[var(--color-bg-card-solid)] md:hidden"
