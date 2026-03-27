@@ -31,18 +31,18 @@ You spent hours perfecting your resume. You send it to companies. Then... silenc
 
 ## ✨ What Sentinel Does
 
-Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When someone opens your resume, you get **real-time insights**:
+Sentinel embeds invisible tracking into your resume link. When someone opens your resume, you get actionable insights:
 
 | Feature | Details |
 |---------|---------|
 | **👤 Viewer Identity** | Location, IP address, device type (mobile/desktop/tablet) |
 | **⏱️ Engagement Time** | Exactly how long they spent reading your resume |
-| **📊 Live Dashboard** | Watch viewers in real-time as they read |
+| **📊 Analytics Dashboard** | Review views, duration, location, and device trends |
 | **🔐 Privacy-First** | No cookies, no personal data collection—just workplace insights |
 | **📱 Responsive Design** | Track on any device, accessible anywhere |
 | **⏰ Link Expiry** | Set custom expiry (1–7 months) or permanent links |
 | **🛑 Kill Switch** | Instantly terminate any shared link with one click |
-| **🎨 Glassmorphism UI** | WebGL shader backgrounds, liquid glass & metal buttons |
+| **🎨 Distinctive UI** | Neo-brutalist visual system with custom UI primitives |
 
 ---
 
@@ -59,11 +59,11 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
   </tr>
   <tr>
     <td><strong>Database</strong></td>
-    <td>Supabase (PostgreSQL), real-time subscriptions</td>
+    <td>Supabase (PostgreSQL)</td>
   </tr>
   <tr>
     <td><strong>Authentication</strong></td>
-    <td>Supabase Auth (email/password, magic links)</td>
+    <td>Supabase Auth (email/password, OTP verification/recovery)</td>
   </tr>
   <tr>
     <td><strong>Security</strong></td>
@@ -74,12 +74,8 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
     <td>Vercel (edge functions, auto-scaling)</td>
   </tr>
   <tr>
-    <td><strong>3D / WebGL</strong></td>
-    <td>Three.js — full-screen chromatic aberration shader</td>
-  </tr>
-  <tr>
     <td><strong>UI Components</strong></td>
-    <td>Liquid Glass buttons, Metal buttons, Glassmorphism, Lucide icons, CVA</td>
+    <td>Reusable Badge/Button/Card/Input/Skeleton primitives, Lucide icons, CVA</td>
   </tr>
 </table>
 
@@ -90,7 +86,7 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 ### For Job Seekers:
 1. **Upload** your resume to Sentinel
 2. **Share** the public link anywhere (LinkedIn, job applications, emails)
-3. **Monitor** real-time analytics on your dashboard
+3. **Monitor** analytics on your dashboard
 4. **Gain insights** to improve your job search strategy
 
 ### Under the Hood:
@@ -105,19 +101,19 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
                                     │  • Geo-location      │
                                     │  • Device info       │
                                     │  • Engagement time   │
-                                    │  • Scroll behavior   │
+                                    │  • Browser + OS      │
                                     └──────────────────────┘
                                                │
                                                ▼
                                     ┌──────────────────────┐
                                     │  Store in Supabase   │
-                                    │  (Real-time sync)    │
+                                    │  (event logging)     │
                                     └──────────────────────┘
                                                │
                                                ▼
                                     ┌──────────────────────┐
                                     │ Job Seeker Dashboard │
-                                    │ (Live updates)       │
+                                    │ (analytics insights) │
                                     └──────────────────────┘
 ```
 
@@ -135,13 +131,12 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 
 ### ⏱️ **Engagement Metrics**
 - Precise time-on-page tracking
-- Scroll behavior analysis
 - Identify which sections capture attention
 
 ### 🔒 **Privacy & Security**
 - **Row-Level Security** ensures only you see your data
 - **Service-role authentication** for trusted operations
-- Compliant with GDPR and privacy regulations
+- Designed to follow privacy-first principles
 - No third-party trackers or ads
 
 ### ⏰ **Link Expiry & Kill Switch**
@@ -149,15 +144,14 @@ Sentinel embeds invisible, GDPR-compliant tracking into your resume link. When s
 - Instantly revoke any shared link with the kill switch
 - Expired links show a clean "Link Expired" page
 
-### 🎨 **Glassmorphism & WebGL**
-- Full-screen Three.js chromatic aberration shader on hero & login
-- Liquid Glass buttons with SVG filter distortion
-- Skeuomorphic Metal buttons with triple-layer gradients
-- Cyber-silver colour palette across the entire app
+### 🎨 **Visual System**
+- Clean, high-contrast neo-brutalist UI direction
+- Consistent component primitives for inputs, cards, buttons, badges, and skeleton states
+- Responsive layouts tuned for dashboard and public resume views
 
-### ⚡ **Real-Time Updates**
-- Live dashboard updates as viewers open your resume
-- Instant notifications on key metrics
+### ⚡ **Analytics Visibility**
+- Dashboard summary for total views, average duration, and top-performing resumes
+- Per-resume breakdown with exportable CSV reports
 
 ---
 
@@ -189,11 +183,7 @@ In your Supabase dashboard:
 
 **3. Configure environment variables**
 
-Copy `.env.local.example` to `.env.local`:
-
-```bash
-cp .env.local.example .env.local
-```
+Create `sentinel/.env.local` (if it does not already exist):
 
 Fill in your Supabase credentials:
 
@@ -201,7 +191,12 @@ Fill in your Supabase credentials:
 NEXT_PUBLIC_SUPABASE_URL=your_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Optional: email view notifications
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL="Sentinel <onboarding@resend.dev>"
 ```
+
+`RESEND_*` variables are optional and only needed for email notifications.
 
 **4. Initialize the database**
 
@@ -237,12 +232,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 src/
 ├── app/                              # Next.js App Router
-│   ├── page.tsx                      # Hero landing (WebGL shader bg)
+│   ├── page.tsx                      # Hero landing page
 │   ├── auth/
-│   │   └── callback/route.ts         # OAuth callback handler
-│   ├── login/page.tsx                # Login (WebGL + glassmorphism)
+│   │   └── callback/route.ts         # Auth callback handler
+│   ├── login/page.tsx                # Sign in/sign up/recovery flows
 │   ├── dashboard/
-│   │   ├── page.tsx                  # Dashboard with real-time stats
+│   │   ├── page.tsx                  # Dashboard with analytics stats
 │   │   ├── layout.tsx                # Authenticated layout wrapper
 │   │   └── resume/[id]/page.tsx      # Per-resume analytics detail
 │   ├── view/[id]/page.tsx            # Public resume viewer (+ expiry check)
@@ -250,12 +245,14 @@ src/
 │       └── track/route.ts            # Tracking beacon endpoint
 │
 ├── components/
-│   ├── navbar.tsx                    # Cyber-silver navigation header
+│   ├── navbar.tsx                    # Main navigation header
 │   ├── pdf-viewer.tsx                # PDF resume renderer
 │   ├── ui/
-│   │   ├── web-gl-shader.tsx         # Three.js chromatic aberration shader
-│   │   ├── liquid-glass-button.tsx   # Glassmorphism button (CVA variants)
-│   │   └── metal-button.tsx          # Skeuomorphic metal button
+│   │   ├── badge.tsx                 # Badge primitive
+│   │   ├── button.tsx                # Button primitive
+│   │   ├── card.tsx                  # Card primitive
+│   │   ├── input.tsx                 # Input primitive
+│   │   └── skeleton.tsx              # Loading skeleton primitive
 │   └── dashboard/
 │       ├── resume-card.tsx           # Card with expiry picker & kill switch
 │       └── upload-button.tsx         # Resume upload handler
@@ -294,7 +291,7 @@ Stores uploaded resumes and metadata.
 | `file_url` | TEXT | NOT NULL | Uploaded resume URL (Supabase Storage) |
 | `title` | TEXT | DEFAULT 'Untitled Resume' | Custom resume title |
 | `slug` | TEXT | UNIQUE | Shareable URL slug |
-| `is_public` | BOOLEAN | DEFAULT true | Sharing visibility |
+| `notify_on_view` | BOOLEAN | DEFAULT true | Enable email notification on new views |
 | `expires_at` | TIMESTAMPTZ | Nullable | Link expiry timestamp (null = permanent) |
 | `created_at` | TIMESTAMPTZ | DEFAULT now() | Creation timestamp |
 
@@ -311,7 +308,8 @@ Tracks viewer interactions and metrics.
 | `city` | TEXT | Nullable | Geo-resolved city |
 | `country` | TEXT | Nullable | Geo-resolved country |
 | `device_type` | TEXT | DEFAULT 'unknown' | `mobile` / `desktop` / `tablet` |
-| `user_agent` | TEXT | Nullable | Browser/device info |
+| `browser` | TEXT | Nullable | Parsed browser name |
+| `os` | TEXT | Nullable | Parsed operating system |
 | `duration_seconds` | INTEGER | DEFAULT 0 | Time spent on resume |
 | `timestamp` | TIMESTAMPTZ | DEFAULT now() | Event timestamp |
 
@@ -319,7 +317,7 @@ Tracks viewer interactions and metrics.
 
 **`resumes` Table:**
 - ✅ Users can SELECT/INSERT/UPDATE/DELETE only their own resumes
-- ✅ Public resumes are readable without authentication (for sharing)
+- ✅ Public resume viewing is handled server-side via service-role access in `/view/[id]`
 
 ```sql
 -- Enable on resumes table
@@ -327,10 +325,19 @@ ALTER TABLE resumes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own resumes"
   ON resumes FOR SELECT
-  USING (auth.uid() = user_id OR is_public = true);
+  USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own resumes"
-  ON resumes FOR INSERT, UPDATE, DELETE
+CREATE POLICY "Users can insert own resumes"
+  ON resumes FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own resumes"
+  ON resumes FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own resumes"
+  ON resumes FOR DELETE
   USING (auth.uid() = user_id);
 ```
 
@@ -365,6 +372,8 @@ Records analytics events when a resume is viewed.
   "resume_id": "uuid-of-resume",
   "event_type": "view|scroll|exit",
   "device_type": "mobile|desktop|tablet",
+  "browser": "Chrome",
+  "os": "Windows",
   "duration_seconds": 45,
   "event_id": "uuid-for-update" // optional, for heartbeat updates
 }
@@ -399,14 +408,14 @@ Records analytics events when a resume is viewed.
 ## 🔒 Security Considerations
 
 ### Authentication
-- Uses Supabase Auth with OAuth providers (Google, GitHub) and email/password
+- Uses Supabase Auth with email/password, email verification, and password recovery
 - Session tokens managed securely via HTTP-only cookies
 - Protected routes via middleware
 
 ### Data Privacy
 - ✅ No personal data from viewers is stored (just metrics)
 - ✅ No third-party advertising networks
-- ✅ Compliant with GDPR and CCPA
+- ✅ Built with privacy-first defaults
 - ✅ Users can export or delete their data anytime
 
 ### Backend Security
@@ -436,6 +445,9 @@ vercel --prod
 NEXT_PUBLIC_SUPABASE_URL=your_production_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
+# Optional (email notifications)
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL="Sentinel <onboarding@resend.dev>"
 ```
 
 ---
@@ -449,14 +461,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
 - ✅ Device detection
 - ✅ Link expiry (1–7 months + permanent)
 - ✅ Kill switch — instantly terminate shared links
-- ✅ WebGL shader backgrounds & glassmorphism UI
-- ✅ Liquid Glass & Metal buttons
-- ✅ Cyber-silver theme
+- ✅ Email notification support for new views (optional via Resend)
+- ✅ Reusable UI primitives and responsive layouts
 - ✅ CSV export for analytics
 
 ### v1.1 (Planned)
 - 📋 Advanced metrics (scroll depth, heatmaps)
-- 🔔 Email notifications on resume views
+- 🔔 Notification preferences (toggle and cadence controls)
 - 📊 Export analytics as PDF
 
 ### v2.0 (Future)
@@ -502,9 +513,9 @@ Have an idea? Found a bug? Want to chat about the project?
 Building Sentinel teaches you:
 
 ✅ **Modern Web Development**: Next.js 16, React 19, TypeScript 5  
-✅ **3D Graphics on the Web**: Three.js shaders, WebGL pipelines  
+✅ **Frontend System Design**: Reusable component primitives and consistent design tokens  
 ✅ **Database Design**: PostgreSQL, RLS policies, relational schemas  
-✅ **Real-Time Applications**: Supabase subscriptions and live updates  
+✅ **Analytics Interfaces**: Charts, summaries, and export flows for resume engagement  
 ✅ **Full-Stack Development**: From frontend UI to backend logic  
 ✅ **Authentication & Security**: Service roles, data privacy  
 ✅ **Geolocation & Device Detection**: IP-based location, user-agent parsing  
