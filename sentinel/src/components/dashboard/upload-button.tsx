@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Upload } from "lucide-react";
 
 interface UploadButtonProps {
   /** Called after a successful upload + DB insert so the parent can refresh. */
@@ -11,52 +12,56 @@ interface UploadButtonProps {
 export default function UploadButton({ onUploadComplete }: UploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Only PDF files are supported.");
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File must be under 10MB.");
+      return;
+    }
+
+    setError(null);
     setUploading(true);
 
     try {
-      // 1. Get the authenticated user
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        alert("You must be logged in to upload.");
+        setError("You must be logged in to upload.");
         return;
       }
 
-      // 2. Build a unique storage path
       const ext = file.name.split(".").pop() ?? "pdf";
       const filePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
 
-      // 3. Upload to the "resumes" storage bucket
       const { error: uploadError } = await supabase.storage
         .from("resumes")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        alert("Upload failed. Please try again.");
+        setError("Upload failed. Please try again.");
         return;
       }
 
-      // 4. Get the public URL for the uploaded file
       const {
         data: { publicUrl },
       } = supabase.storage.from("resumes").getPublicUrl(filePath);
 
-      // 5. Insert a row into the resumes table
       const title = file.name.replace(/\.[^/.]+$/, "") || "Untitled Resume";
-
-      // Auto-generate slug from title
       const baseSlug = title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
@@ -72,24 +77,22 @@ export default function UploadButton({ onUploadComplete }: UploadButtonProps) {
 
       if (insertError) {
         console.error("DB insert error:", insertError);
-        alert("Failed to save resume metadata.");
+        setError("Failed to save resume. Please try again.");
         return;
       }
 
-      // 6. Notify the parent dashboard to refresh
       onUploadComplete();
     } catch (err) {
       console.error("Unexpected error:", err);
-      alert("Something went wrong.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setUploading(false);
-      // Reset the input so the same file can be re-selected
       if (inputRef.current) inputRef.current.value = "";
     }
   }
 
   return (
-    <>
+    <div className="flex flex-col items-end gap-2">
       <input
         ref={inputRef}
         type="file"
@@ -101,34 +104,40 @@ export default function UploadButton({ onUploadComplete }: UploadButtonProps) {
       <button
         type="button"
         disabled={uploading}
-        onClick={() => inputRef.current?.click()}
-        className="inline-flex items-center gap-2 rounded-lg border border-zinc-500/30 bg-zinc-100/10 px-5 py-3 text-sm font-medium text-zinc-200 transition hover:bg-zinc-100/20 hover:border-zinc-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => { setError(null); inputRef.current?.click(); }}
+        className="inline-flex items-center gap-2 border-2 border-[var(--color-border-main)] px-4 py-2.5 text-sm font-extrabold shadow-[4px_4px_0_var(--color-border-main)] transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none disabled:hover:translate-y-0"
+        style={{
+          background: uploading ? "var(--color-bg-hover)" : "var(--color-accent)",
+          color: uploading ? "var(--color-text-primary)" : "#ffffff",
+        }}
       >
         {uploading ? (
           <>
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400/30 border-t-zinc-200" />
-            Uploading&hellip;
+            <span
+              className="h-4 w-4 animate-spin rounded-full border-2"
+              style={{
+                borderColor: "color-mix(in oklab, var(--color-border-main) 30%, transparent)",
+                borderTopColor: "var(--color-border-main)",
+              }}
+            />
+            Uploading...
           </>
         ) : (
           <>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Upload className="h-4 w-4" />
             Upload Resume
           </>
         )}
       </button>
-    </>
+
+      {error && (
+        <p
+          className="text-xs"
+          style={{ color: "#f87171" }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
